@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>サイト設計デモ v3.7 ― 部署別の入口・共通フォルダの統合・PJサイトの分離</title>
+<style>
+:root{
+  --navy:#0b3d91; --ink:#1f1f1f; --gray:#605e5c; --line:#edebe9;
+  --bg:#faf9f8; --blue:#0f6cbd; --green:#107c10; --orange:#c55a11; --red:#a4262c;
+  --pale:#eef3fb;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Segoe UI","Yu Gothic UI","Hiragino Sans",Meiryo,sans-serif;font-size:14px}
+a{color:inherit}
+/* ---------- suite bar ---------- */
+.suite{height:48px;background:var(--navy);color:#fff;display:flex;align-items:center;
+  padding:0 16px;gap:14px;position:sticky;top:0;z-index:40}
+.suite .waffle{font-size:18px;opacity:.9}
+.suite .brand{font-weight:600;font-size:15px}
+.suite .search{flex:1;max-width:520px;background:rgba(255,255,255,.15);border-radius:4px;
+  padding:6px 12px;color:#dfe8f7;font-size:13px}
+.suite .me{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:12.5px}
+.suite .av{width:28px;height:28px;border-radius:50%;background:#5b8def;display:flex;
+  align-items:center;justify-content:center;font-weight:700;font-size:12px}
+/* ---------- hub nav ---------- */
+.hub{background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;
+  gap:4px;padding:0 16px;height:44px;overflow-x:auto;position:sticky;top:48px;z-index:30}
+.hub .hname{display:flex;align-items:center;gap:8px;font-weight:600;margin-right:14px;
+  white-space:nowrap;cursor:pointer}
+.hub .tile{width:22px;height:22px;border-radius:2px;background:var(--navy);color:#fff;
+  font-size:10px;display:flex;align-items:center;justify-content:center;font-weight:700}
+.hub .hl{padding:0 12px;height:44px;display:flex;align-items:center;white-space:nowrap;
+  cursor:pointer;font-size:13.5px;color:#323130;border-bottom:2px solid transparent}
+.hub .hl:hover{background:#f3f2f1}
+.hub .hl.on{border-bottom-color:var(--navy);font-weight:600;color:var(--navy)}
+.hub .hl.new{color:var(--orange)}
+.hub .hl.new::after{content:"NEW";font-size:9px;background:var(--orange);color:#fff;
+  border-radius:8px;padding:1px 5px;margin-left:6px;font-weight:700}
+/* ---------- layout ---------- */
+.wrap{display:flex;gap:0;align-items:flex-start}
+.side{width:236px;flex:none;background:#fff;border-right:1px solid var(--line);
+  min-height:calc(100vh - 92px);padding:14px 0}
+.side .sh{font-size:11px;color:var(--gray);padding:6px 18px;font-weight:600;letter-spacing:.04em}
+.side .li{padding:8px 18px;cursor:pointer;font-size:13px;border-left:3px solid transparent}
+.side .li:hover{background:#f3f2f1}
+.side .li.on{background:#eef3fb;border-left-color:var(--navy);font-weight:600;color:var(--navy)}
+.side hr{border:0;border-top:1px solid var(--line);margin:10px 14px}
+.main{flex:1;min-width:0;padding:0 0 60px}
+/* ---------- site header ---------- */
+.shead{background:#fff;border-bottom:1px solid var(--line);padding:16px 26px 0}
+.shead .r1{display:flex;align-items:center;gap:14px}
+.shead .st{width:44px;height:44px;border-radius:4px;display:flex;align-items:center;
+  justify-content:center;color:#fff;font-weight:700;font-size:14px}
+.shead h1{margin:0;font-size:19px}
+.shead .sub{font-size:12px;color:var(--gray);display:flex;gap:14px;margin-top:3px}
+.shead .nav{display:flex;gap:22px;margin-top:14px;font-size:13px}
+.shead .nav div{padding-bottom:9px;color:#484644;cursor:default}
+.shead .nav div.on{border-bottom:2px solid var(--navy);font-weight:600;color:var(--navy)}
+/* ---------- content ---------- */
+.pad{padding:22px 26px}
+.card{background:#fff;border:1px solid var(--line);border-radius:6px;margin-bottom:18px}
+.card>h2{margin:0;font-size:14px;padding:12px 16px;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:10px}
+.card .body{padding:14px 16px}
+.badge{font-size:10.5px;font-weight:700;border-radius:10px;padding:2px 9px;color:#fff}
+.b-a{background:var(--blue)} .b-b{background:var(--green)} .b-c{background:var(--orange)}
+/* dept grid */
+.dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:9px}
+.dbtn{border:1px solid #cfd8e6;background:#f7faff;border-radius:5px;padding:11px 12px;
+  cursor:pointer;display:flex;align-items:center;gap:9px;font-size:13px}
+.dbtn:hover{background:#eaf1fd;border-color:var(--navy)}
+.dbtn .ic{width:24px;height:24px;border-radius:3px;background:var(--navy);color:#fff;
+  font-size:11px;display:flex;align-items:center;justify-content:center;font-weight:700;flex:none}
+/* toolbar / table */
+.tool{display:flex;align-items:center;gap:16px;padding:9px 16px;border-bottom:1px solid var(--line);
+  font-size:13px;color:#323130;background:#fff}
+.tool .nw{color:var(--blue);font-weight:600}
+.tb{width:100%;border-collapse:collapse;background:#fff;font-size:13px}
+.tb th{text-align:left;font-size:12px;color:var(--gray);font-weight:600;
+  padding:8px 16px;border-bottom:1px solid var(--line);white-space:nowrap}
+.tb td{padding:9px 16px;border-bottom:1px solid #f5f4f3;vertical-align:top}
+.tb tr:hover td{background:#f7f7f7}
+.fo::before{content:"📁";margin-right:8px}
+.fi::before{content:"📄";margin-right:8px}
+.lv{font-size:10.5px;border-radius:3px;padding:1px 7px;border:1px solid #d6d6d6;color:var(--gray)}
+.del{color:#b9b9b9;text-decoration:line-through}
+.tagnew{font-size:10px;background:#e8f5e9;color:var(--green);border-radius:3px;
+  padding:1px 6px;margin-left:8px;font-weight:700}
+.tagmv{font-size:10px;background:#fdf2e9;color:var(--orange);border-radius:3px;
+  padding:1px 6px;margin-left:8px;font-weight:700}
+.tagdup{font-size:10px;background:#fdecea;color:var(--red);border-radius:3px;
+  padding:1px 6px;margin-left:8px;font-weight:700}
+/* toggle */
+.tg{display:inline-flex;border:1px solid #cfd8e6;border-radius:16px;overflow:hidden;font-size:12px}
+.tg div{padding:5px 15px;cursor:pointer;background:#fff;color:var(--gray)}
+.tg div.on{background:var(--navy);color:#fff;font-weight:700}
+.note{background:#fffbe9;border-left:4px solid #e8b93a;padding:10px 14px;font-size:12.5px;
+  line-height:1.65;border-radius:0 4px 4px 0;margin-top:12px}
+.note.g{background:#eef8ee;border-left-color:var(--green)}
+.note.o{background:#fdf4ec;border-left-color:var(--orange)}
+.quote{font-size:12.5px;color:#4a4a4a;border-left:3px solid #cfd8e6;padding:3px 0 3px 12px;
+  margin:8px 0;line-height:1.6}
+.foot{padding:16px 26px;color:#8a8886;font-size:11.5px;border-top:1px solid var(--line);
+  background:#fff;line-height:1.8}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:12.5px;line-height:1.6}
+.kv b{color:var(--navy);white-space:nowrap}
+@media(max-width:900px){.side{display:none}}
+</style>
+</head>
+<body>
+
+<div class="suite">
+  <span class="waffle">▦</span>
+  <span class="brand">SharePoint</span>
+  <div class="search">サイトとファイルを検索</div>
+  <div class="me"><span>サンプル株式会社</span><div class="av">S</div></div>
+</div>
+
+<div class="hub" id="hub"></div>
+
+<div class="wrap">
+  <div class="side" id="side"></div>
+  <div class="main">
+    <div class="shead" id="shead"></div>
+    <div class="pad" id="pad"></div>
+    <div class="foot">
+      これは設計をご確認いただくための試作画面です。実在のファイルは配置していません。<br>
+      掲載しているフォルダは、各部署の構成案のうち、レビューでご指摘のあった箇所を抜粋したものです。全19サイト・104ライブラリのうち一部のみを表示しています。
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   v3.7 デモ用データ（設計の考え方を示すための抜粋）
+   ・8/20〜8/25 に4部署からいただいたレビューシートの指摘に対応
+   ・A 部署別の入口 ／ B 共通フォルダの統合 ／ C PJサイトの分離
+   ============================================================ */
+const DEPTS = ["管理本部","営業部","購買室","業務部","サービス部","生産部",
+               "WPS推進室","ISO管理室","生産技術室","品質技術課","経理部","情報システム部"];
+
+const SITES = [
+  {id:"portal", short:"SC",  name:"全社ポータル", color:"#0b3d91", hub:true,
+   desc:"全サイトの入口・規程・様式・通達", members:412},
+  {id:"F12",    short:"F12", name:"F12 環境・安全衛生", color:"#0f6cbd",
+   desc:"環境規制・省エネ・安全衛生", members:72},
+  {id:"F14",    short:"F14", name:"F14 研究開発・技術・知財管理", color:"#0f6cbd",
+   desc:"製品開発・技術資料・知財", members:10},
+  {id:"PJ",     short:"PJ",  name:"立ち上げプロジェクト", color:"#c55a11", isnew:true,
+   desc:"工場・拠点の立ち上げ。PJごとにサイトを作り、終了時に18サイトへ移します", members:24},
+  {id:"ARC",    short:"AR",  name:"アーカイブ", color:"#797775",
+   desc:"保存義務のみ・読み取り専用", members:412}
+];
+
+const LIBS = {
+  portal:[{k:"l2", n:"全社共有（規程・様式・通達）", lv:"L2"}],
+  F12:[{k:"F1201", n:"F12-01 環境規制遵守・環境管理", lv:"L3"},
+       {k:"F1206", n:"F12-06 エネルギー管理・省エネ活動", lv:"L3"}],
+  F14:[{k:"F1401", n:"F14-01 製品開発・研究プロジェクト", lv:"L3"},
+       {k:"F1402", n:"F14-02 技術資料・仕様管理", lv:"L3"},
+       {k:"F1409", n:"F14-09 省エネ管理・会議", lv:"L3"}],
+  PJ:[{k:"PJ01", n:"札幌PJ", lv:"L3"},{k:"PJ02", n:"京都PJ", lv:"L3"},
+      {k:"PJ03", n:"鹿児島PJ", lv:"L3"},{k:"PJ04", n:"七条PJ", lv:"L3"},
+      {k:"PJ05", n:"開発案件", lv:"L3"}],
+  ARC:[{k:"arc", n:"アーカイブ（部署別）", lv:"—"}]
+};
+
+/* フォルダ：before = v3.5（現行） / after = v3.7（今回案）
+   flag: dup=重複のため統合 / mv=PJサイトへ移動 / new=統合後 */
+const FOL = {
+  F1201:{
+    before:[
+      ["プロジェクト(共通) ＞ 環境法規","mv"],
+      ["技術・生産・WPS共有(共通) ＞ コンプライアンス",""],
+      ["技術・生産・WPS共有(共通) ＞ コンプライアンス ＞ PRTR法",""],
+      ["技術・生産・WPS共有(共通) ＞ コンプライアンス ＞ SDS",""],
+      ["技術・生産・WPS共有(共通) ＞ コンプライアンス ＞ 化学物質のリスクアセスメント",""],
+      ["技術・生産・WPS共有(共通) ＞ 省エネ ＞ カーボンニュートラル",""],
+      ["技術・生産共有(共通) ＞ 環境法規","dup"],
+      ["技術・生産共有(共通) ＞ 環境法規 ＞ 報告書","dup"],
+      ["技術・生産共有(共通) ＞ 環境法規 ＞ 測定結果","dup"],
+      ["技術・生産共有(共通) ＞ 環境法規 ＞ 環境法規規制値管理表","dup"],
+      ["技術・生産共有(共通) ＞ 環境法規 ＞ 環境法規規制値集計表","dup"],
+      ["技術部(共通) ＞ コンプライアンス","dup"],
+      ["技術部(共通) ＞ コンプライアンス ＞ PRTR法","dup"],
+      ["技術部(共通) ＞ コンプライアンス ＞ SDS","dup"],
+      ["技術部(共通) ＞ コンプライアンス ＞ 化学物質のリスクアセスメント","dup"],
+      ["技術部(共通) ＞ 環境法規","dup"],
+      ["技術部(共通) ＞ 環境法規 ＞ 報告書","dup"],
+      ["技術部(共通) ＞ 環境法規 ＞ 測定結果","dup"],
+      ["技術部(共通) ＞ 環境法規 ＞ 環境法規規制値管理表","dup"],
+      ["生産部PJ(正式) ＞ 環境管理",""],
+      ["生産部PJ(正式) ＞ 環境管理 ＞ 排水・水質",""],
+      ["総務系業務 ＞ 環境対応",""]
+    ],
+    after:[
+      ["技術・生産・WPS共有(共通) ＞ コンプライアンス","new"],
+      ["技術・生産・WPS共有(共通) ＞ コンプライアンス ＞ PRTR法",""],
+      ["技術・生産・WPS共有(共通) ＞ コンプライアンス ＞ SDS",""],
+      ["技術・生産・WPS共有(共通) ＞ コンプライアンス ＞ 化学物質のリスクアセスメント",""],
+      ["技術・生産・WPS共有(共通) ＞ 環境法規","new"],
+      ["技術・生産・WPS共有(共通) ＞ 環境法規 ＞ 報告書",""],
+      ["技術・生産・WPS共有(共通) ＞ 環境法規 ＞ 測定結果",""],
+      ["技術・生産・WPS共有(共通) ＞ 環境法規 ＞ 環境法規規制値管理表",""],
+      ["技術・生産・WPS共有(共通) ＞ 環境法規 ＞ 環境法規規制値集計表",""],
+      ["技術・生産・WPS共有(共通) ＞ 省エネ ＞ カーボンニュートラル",""],
+      ["生産部PJ(正式) ＞ 環境管理",""],
+      ["生産部PJ(正式) ＞ 環境管理 ＞ 排水・水質",""],
+      ["総務系業務 ＞ 環境対応",""]
+    ],
+    msg:"品質技術課よりご指摘（区分：フォルダが多すぎる）。「技術・生産・WPS共有(共通)」「技術・生産共有(共通)」「技術部(共通)」の3本に同じ内容が並んでいました。"
+  },
+  F1206:{
+    before:[
+      ["技術・生産・WPS共有(共通) ＞ 省エネ",""],
+      ["技術・生産・WPS共有(共通) ＞ 省エネ ＞ 外部コンサル",""],
+      ["技術・生産・WPS共有(共通) ＞ 省エネ ＞ 省エネ管理板",""],
+      ["技術部(共通) ＞ 省エネ","dup"],
+      ["技術部(共通) ＞ 省エネ ＞ UF省エネ会議","dup"],
+      ["技術部(共通) ＞ 省エネ ＞ 外部コンサル","dup"],
+      ["技術部(共通) ＞ 省エネ ＞ 省エネ管理板","dup"],
+      ["生産部(正式) ＞ 検針記録 ＞ ガス",""],
+      ["生産部(正式) ＞ 検針記録 ＞ 水道",""],
+      ["生産部(正式) ＞ 検針記録 ＞ 蒸気",""],
+      ["生産部(正式) ＞ 検針記録 ＞ 電気",""],
+      ["生産部PJ(正式) ＞ 省エネ・改善活動 ＞ 活動計画",""],
+      ["生産部PJ(正式) ＞ 省エネ・改善活動 ＞ 活動実績",""],
+      ["生産部PJ(正式) ＞ 省エネ・改善活動 ＞ 省エネパトロール",""]
+    ],
+    after:[
+      ["技術・生産・WPS共有(共通) ＞ 省エネ","new"],
+      ["技術・生産・WPS共有(共通) ＞ 省エネ ＞ UF省エネ会議",""],
+      ["技術・生産・WPS共有(共通) ＞ 省エネ ＞ 外部コンサル",""],
+      ["技術・生産・WPS共有(共通) ＞ 省エネ ＞ 省エネ管理板",""],
+      ["生産部(正式) ＞ 検針記録 ＞ ガス",""],
+      ["生産部(正式) ＞ 検針記録 ＞ 水道",""],
+      ["生産部(正式) ＞ 検針記録 ＞ 蒸気",""],
+      ["生産部(正式) ＞ 検針記録 ＞ 電気",""],
+      ["生産部PJ(正式) ＞ 省エネ・改善活動 ＞ 活動計画",""],
+      ["生産部PJ(正式) ＞ 省エネ・改善活動 ＞ 活動実績",""],
+      ["生産部PJ(正式) ＞ 省エネ・改善活動 ＞ 省エネパトロール",""]
+    ],
+    msg:"品質技術課よりご指摘。「技術部(共通) ＞ 省エネ」は「技術・生産・WPS共有(共通) ＞ 省エネ」と同じ内容でした。UF省エネ会議のみ技術部側にしかなかったため、統合先に残しています。"
+  },
+  F1409:{
+    before:[
+      ["技術・生産・WPS共有(共通) ＞ 省エネ ＞ UF・宴会省エネ会議",""],
+      ["技術・生産・WPS共有(共通) ＞ 省エネ ＞ 中部省エネ会議",""],
+      ["技術・生産・WPS共有(共通) ＞ 省エネ ＞ 全社省エネ会議",""],
+      ["技術・生産・WPS共有(共通) ＞ 省エネ ＞ 客室・宴会省エネ会議",""],
+      ["技術・生産・WPS共有(共通) ＞ 省エネ ＞ 関東省エネ会議",""],
+      ["技術・生産・WPS共有(共通) ＞ 省エネ ＞ 関西省エネ会議",""],
+      ["技術部(共通) ＞ 省エネ ＞ 中部省エネ会議","dup"],
+      ["技術部(共通) ＞ 省エネ ＞ 全社省エネ会議","dup"],
+      ["技術部(共通) ＞ 省エネ ＞ 客室・宴会省エネ会議","dup"],
+      ["技術部(共通) ＞ 省エネ ＞ 関東省エネ会議","dup"],
+      ["技術部(共通) ＞ 省エネ ＞ 関西省エネ会議","dup"]
+    ],
+    after:[
+      ["技術・生産・WPS共有(共通) ＞ 省エネ ＞ UF・宴会省エネ会議",""],
+      ["技術・生産・WPS共有(共通) ＞ 省エネ ＞ 中部省エネ会議",""],
+      ["技術・生産・WPS共有(共通) ＞ 省エネ ＞ 全社省エネ会議",""],
+      ["技術・生産・WPS共有(共通) ＞ 省エネ ＞ 客室・宴会省エネ会議",""],
+      ["技術・生産・WPS共有(共通) ＞ 省エネ ＞ 関東省エネ会議",""],
+      ["技術・生産・WPS共有(共通) ＞ 省エネ ＞ 関西省エネ会議",""]
+    ],
+    msg:"「技術部(共通)」の5本は完全な重複でした。あわせて生産技術室より「生産のKPI指標のファイルが多く、そもそもサイトが異なる（技術部の業務対象外）」とのご指摘をいただいています。KPI指標の置き場所は確認会でご相談させてください。"
+  },
+  F1401:{
+    before:[
+      ["プロジェクト(共通) ＞ PJ","mv"],
+      ["プロジェクト(共通) ＞ PJ ＞ 検収","mv"],
+      ["プロジェクト(共通) ＞ PJ ＞ 注文書","mv"],
+      ["プロジェクト(共通) ＞ PJ ＞ 立会報告書","mv"],
+      ["プロジェクト(共通) ＞ PJ ＞ 設備導入進捗確認書","mv"],
+      ["プロジェクト(共通) ＞ PJ ＞ 請書","mv"],
+      ["技術部(共通) ＞ 工場立ち上げ",""],
+      ["技術部(共通) ＞ 研究室",""],
+      ["技術部(共通) ＞ 設備計画 ＞ 設備導入進捗確認書",""],
+      ["技術部(共通) ＞ 開発 ＞ AI検査機",""],
+      ["技術部(共通) ＞ 開発 ＞ AMR",""],
+      ["技術部(共通) ＞ 開発 ＞ 企画構想",""],
+      ["生産部PJ(正式) ＞ プロジェクト",""]
+    ],
+    after:[
+      ["技術部(共通) ＞ 工場立ち上げ",""],
+      ["技術部(共通) ＞ 研究室",""],
+      ["技術部(共通) ＞ 設備計画 ＞ 設備導入進捗確認書",""],
+      ["技術部(共通) ＞ 開発 ＞ AI検査機",""],
+      ["技術部(共通) ＞ 開発 ＞ AMR",""],
+      ["技術部(共通) ＞ 開発 ＞ 企画構想",""],
+      ["生産部PJ(正式) ＞ プロジェクト",""]
+    ],
+    msg:"生産技術室よりご指摘。「プロジェクト（共通）と技術部（共通）で使い分けが分からない。PJごとに権限が変わるので実務的な運用が難しい」。「プロジェクト(共通)」配下は PJ サイトへ移しました。"
+  },
+  F1402:{
+    before:[
+      ["プロジェクト(共通) ＞ PJ ＞ レイアウト図","mv"],
+      ["プロジェクト(共通) ＞ PJ ＞ 機械割当図","mv"],
+      ["プロジェクト(共通) ＞ PJ ＞ 製作図","mv"],
+      ["プロジェクト(共通) ＞ PJ ＞ 計画設備一覧(諸元表)","mv"],
+      ["プロジェクト(共通) ＞ PJ ＞ 設備仕様書","mv"],
+      ["技術部(共通) ＞ 取扱説明書",""],
+      ["技術部(共通) ＞ 標準仕様",""]
+    ],
+    after:[
+      ["技術部(共通) ＞ 取扱説明書",""],
+      ["技術部(共通) ＞ 標準仕様",""],
+      ["技術部(共通) ＞ 工事管理文書","add"]
+    ],
+    msg:"生産技術室より「工程管理のための帳票類の保存先を分けて管理したい（工事管理文書のフォルダ追加）」とのご要望をいただき、追加しています。"
+  }
+};
+
+/* PJサイトの共通テンプレート（各PJライブラリで同じ形） */
+const PJTMPL = [
+  "01_契約・見積 ＞ 契約書","01_契約・見積 ＞ 見積書","01_契約・見積 ＞ 注文書",
+  "01_契約・見積 ＞ 請書","01_契約・見積 ＞ 検収",
+  "02_設計・仕様 ＞ 設備仕様書","02_設計・仕様 ＞ 製作図","02_設計・仕様 ＞ レイアウト図",
+  "02_設計・仕様 ＞ 機械割当図","02_設計・仕様 ＞ 計画設備一覧(諸元表)",
+  "03_工事・立会 ＞ 工事チェックリスト","03_工事・立会 ＞ 工事立会",
+  "03_工事・立会 ＞ 立会報告書","03_工事・立会 ＞ 設備導入進捗確認書",
+  "04_許認可 ＞ 役所提出書類","04_許認可 ＞ 検査済証","04_許認可 ＞ 環境法規",
+  "05_完成図書 ＞ 建物完成図書","05_完成図書 ＞ 竣工図","05_完成図書 ＞ 完成引渡書",
+  "06_報告 ＞ 社長報告資料","06_報告 ＞ 進捗報告"
+];
+
+/* 部署別ビュー（A）：自部署のフォルダがどのサイトにあるか（抜粋） */
+const DEPTVIEW = {
+  "WPS推進室":{
+    msg:"「自部署で使うフォルダがどこにあるのかわからない」「提出した構成が複数にまたがってバラバラになっている」とのご指摘をいただきました。この画面が、その入口にあたります。",
+    rows:[
+      ["WPS推進室(PJ) ＞ 改善活動 ＞ 活動計画","F12","F12-06 エネルギー管理・省エネ活動"],
+      ["WPS推進室(PJ) ＞ 改善活動 ＞ 活動実績","F12","F12-06 エネルギー管理・省エネ活動"],
+      ["技術・生産・WPS共有(共通) ＞ 省エネ","F12","F12-06 エネルギー管理・省エネ活動"],
+      ["技術・生産・WPS共有(共通) ＞ 省エネ ＞ 省エネ管理板","F12","F12-06 エネルギー管理・省エネ活動"],
+      ["技術・生産・WPS共有(共通) ＞ コンプライアンス","F12","F12-01 環境規制遵守・環境管理"],
+      ["WPS推進室(PJ) ＞ 標準化 ＞ 手順書","F14","F14-05 技術教育・ノウハウ共有"],
+      ["技術・生産・WPS共有(共通) ＞ 省エネ ＞ 全社省エネ会議","F14","F14-09 省エネ管理・会議"]
+    ]
+  },
+  "品質技術課":{
+    msg:"「試験報告書に関する基盤リストとワークフローを別サイトで構築済みなので活用したい」とのご要望をいただいています。既存の検証サイトとの関係は、確認会でご相談させてください。",
+    rows:[
+      ["技術部(共通) ＞ 試験報告書","F14","F14-03 試験・検証記録"],
+      ["技術部(共通) ＞ 品質管理 ＞ WEX試験布","F14","F14-03 試験・検証記録"],
+      ["技術・生産・WPS共有(共通) ＞ コンプライアンス","F12","F12-01 環境規制遵守・環境管理"],
+      ["技術・生産・WPS共有(共通) ＞ 省エネ","F12","F12-06 エネルギー管理・省エネ活動"]
+    ]
+  },
+  "生産技術室":{
+    msg:"「工場立ち上げ規模のPJは任意のサイトを都度立ち上げ、終了後にナレッジへ格納する構成に見直してほしい」とのご提案をいただき、PJサイトを新設しました。",
+    rows:[
+      ["技術部(共通) ＞ 工場立ち上げ","F14","F14-01 製品開発・研究プロジェクト"],
+      ["技術部(共通) ＞ 開発 ＞ AI検査機","F14","F14-01 製品開発・研究プロジェクト"],
+      ["技術部(共通) ＞ 工事管理文書","F14","F14-02 技術資料・仕様管理"],
+      ["01_契約・見積／02_設計・仕様 ほか","PJ","札幌PJ・京都PJ ほか（新設）"]
+    ]
+  },
+  "ISO管理室":{
+    msg:"構成そのものへのご指摘はなく、公開範囲の変更を3件いただいています（方針管理まわり）。確認会で反映内容をご確認ください。",
+    rows:[
+      ["ISO管理室 ＞ 内部監査 ＞ 監査計画","F06","F06-02 内部監査・是正処置"],
+      ["プロジェクト共通(共通) ＞ 方針管理 ＞ 業務実施計画","F01","F01-01 経営計画・方針策定"],
+      ["プロジェクト共通(共通) ＞ 方針管理 ＞ 部方針","F01","F01-01 経営計画・方針策定"]
+    ]
+  }
+};
+
+/* ============================================================ */
+let cur = "portal", curLib = "l2", mode = "after", curDept = null;
+
+function el(id){return document.getElementById(id)}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;")}
+
+function drawHub(){
+  el("hub").innerHTML =
+    `<div class="hname" onclick="go('portal')"><span class="tile">SC</span>サンプル株式会社 ポータル</div>` +
+    SITES.filter(s=>!s.hub).map(s=>
+      `<div class="hl ${s.id===cur?"on":""} ${s.isnew?"new":""}" onclick="go('${s.id}')">${s.name}</div>`
+    ).join("");
+}
+
+function drawSide(){
+  const libs = LIBS[cur]||[];
+  el("side").innerHTML =
+    `<div class="sh">ドキュメント ライブラリ</div>` +
+    libs.map(l=>`<div class="li ${l.k===curLib?"on":""}" onclick="selLib('${l.k}')">${l.n}</div>`).join("") +
+    `<hr><div class="sh">サイト</div>
+     <div class="li" onclick="go('portal')">ホーム</div>
+     <div class="li">ごみ箱</div><div class="li">サイト コンテンツ</div>`;
+}
+
+function drawHead(){
+  const s = SITES.find(x=>x.id===cur);
+  el("shead").innerHTML = `
+    <div class="r1">
+      <div class="st" style="background:${s.color}">${s.short}</div>
+      <div><h1>${s.name}</h1>
+        <div class="sub"><span>${s.hub?"ハブ サイト":"チーム サイト"}</span><span>${s.desc}</span>
+        <span>👥 ${s.members}人</span></div></div>
+    </div>
+    <div class="nav"><div class="on">ホーム</div><div>ドキュメント</div><div>ページ</div><div>サイト コンテンツ</div></div>`;
+}
+
+/* ---------- ポータル（A） ---------- */
+function portalBody(){
+  return `
+  <div class="card">
+    <h2><span class="badge b-a">A</span>自部署のフォルダはこちら</h2>
+    <div class="body">
+      <div style="font-size:12.5px;color:#605e5c;margin-bottom:12px">
+        サイトは業務の種類で分かれています。自部署の文書がどのサイトに入っているかは、ここから確認できます。
+      </div>
+      <div class="dgrid">${DEPTS.map(d=>
+        `<div class="dbtn" onclick="openDept('${d}')"><span class="ic">${d.slice(0,2)}</span>${d}</div>`).join("")}</div>
+      <div class="note">
+        レビューで <b>「自部署で使うフォルダがどこにあるのかわからない」</b>（WPS推進室）というご指摘をいただきました。
+        サイトの分け方を部署別に変えるのではなく、<b>入口を部署別にする</b>ことで解決する案です。
+        文書は業務の種類で1か所にまとまったまま、探すときは自部署から入れます。
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>全社共有（規程・様式・通達）<span class="lv">L2</span></h2>
+    <div class="tool"><span class="nw">＋ 新規</span><span>↑ アップロード</span><span>⇅ 並べ替え</span>
+      <span style="margin-left:auto;color:#605e5c">公開範囲：全社（投稿は管理本部）</span></div>
+    <table class="tb">
+      <thead><tr><th style="width:46%">名前</th><th>更新日時</th><th>更新者</th><th>分類</th></tr></thead>
+      <tbody>
+        <tr><td class="fi">就業規則・規程原本.pdf</td><td>2026/04/01</td><td>総務 担当</td><td>F13</td></tr>
+        <tr><td class="fi">稟議書フォーマット.docx</td><td>2026/04/01</td><td>総務 担当</td><td>F13</td></tr>
+        <tr><td class="fi">会社案内2026.pdf</td><td>2026/03/12</td><td>広報 担当</td><td>F13</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>今回の変更点（v3.5 → v3.7）</h2>
+    <div class="body">
+      <div class="kv">
+        <b><span class="badge b-a">A</span></b>
+        <span><b>部署別の入口を常設しました。</b>サイト構成は業務別のまま、上のボタンから自部署のフォルダ一覧に入れます。</span>
+        <b><span class="badge b-b">B</span></b>
+        <span><b>同じ内容が並んでいた「〇〇（共通）」フォルダを1本に統合しました。</b>F12-01／F12-06／F14-09 の3ライブラリが対象です。上のメニューから「F12 環境・安全衛生」を開くと、統合前後を切り替えてご覧いただけます。</span>
+        <b><span class="badge b-c">C</span></b>
+        <span><b>立ち上げプロジェクト用のサイトを新設しました。</b>PJ期間中はそこで作業し、終了時に18サイトへ移します。各業務ライブラリにあった「プロジェクト(共通)」は、このサイトへ移しました。</span>
+      </div>
+      <div class="note o">
+        いずれも当社案です。<b>確認会でご判断ください。</b>
+        とくに B の統合先の名前（「技術・生産・WPS共有(共通)」に寄せるか「技術部(共通)」に寄せるか）は、
+        公開範囲が変わるため、技術部・生産部・WPS推進室の3部署でのご確認をお願いします。
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---------- 部署別ビュー（A） ---------- */
+function openDept(d){ curDept = d; cur = "portal"; drawAll(); window.scrollTo(0,0); }
+function deptBody(){
+  const d = DEPTVIEW[curDept];
+  const head = `<div class="card"><h2><span class="badge b-a">A</span>${curDept}｜自部署のフォルダの格納先</h2>`;
+  if(!d) return head + `<div class="body"><div class="note">
+      この部署の抜粋データは、このデモには含めていません。設計の考え方をご確認いただくため、
+      WPS推進室・品質技術課・生産技術室・ISO管理室の4部署のみを表示しています。
+      </div><div style="margin-top:14px"><span class="dbtn" style="display:inline-flex" onclick="curDept=null;drawAll()">← ポータルに戻る</span></div></div></div>`;
+  return head + `<div class="tool"><span>${d.rows.length} 件（抜粋）</span>
+      <span style="margin-left:auto;cursor:pointer;color:#0f6cbd" onclick="curDept=null;drawAll()">← ポータルに戻る</span></div>
+    <table class="tb"><thead><tr>
+      <th style="width:44%">現行フォルダ</th><th style="width:12%">移行先サイト</th><th>移行先ライブラリ</th>
+    </tr></thead><tbody>
+    ${d.rows.map(r=>`<tr><td class="fo">${esc(r[0])}</td>
+      <td><span class="lv">${r[1]}</span></td><td>${esc(r[2])}</td></tr>`).join("")}
+    </tbody></table>
+    <div class="body"><div class="note">${d.msg}</div></div></div>`;
+}
+
+/* ---------- ライブラリ（B / C） ---------- */
+function libBody(){
+  if(cur === "PJ") return pjBody();
+  if(cur === "ARC") return `<div class="card"><h2>アーカイブ（部署別）</h2><div class="body">
+    <div style="font-size:12.5px;color:#605e5c">保存義務のみ・読み取り専用のサイトです。
+    1年以上アクセスのないファイルをここへ移し、現行サイトの検索結果に混ざらないようにします。</div></div></div>`;
+
+  const lib = (LIBS[cur]||[]).find(l=>l.k===curLib) || (LIBS[cur]||[])[0];
+  const f = FOL[lib.k];
+  if(!f) return `<div class="card"><h2>${lib.n}</h2><div class="body">このライブラリはデモに含めていません。</div></div>`;
+  const rows = f[mode];
+  const nb = f.before.length, na = f.after.length;
+
+  return `
+  <div class="card">
+    <h2><span class="badge b-b">B</span>${lib.n}<span class="lv">${lib.lv}</span>
+      <span style="margin-left:auto" class="tg">
+        <div class="${mode==='before'?'on':''}" onclick="setMode('before')">v3.5（現行）${nb}</div>
+        <div class="${mode==='after'?'on':''}" onclick="setMode('after')">v3.7（今回案）${na}</div>
+      </span></h2>
+    <div class="tool"><span class="nw">＋ 新規</span><span>↑ アップロード</span>
+      <span style="margin-left:auto;color:#605e5c">
+      ${mode==='before'
+        ? `<span style="color:#a4262c">重複 ${f.before.filter(r=>r[1]==='dup').length} 件・PJへ移動 ${f.before.filter(r=>r[1]==='mv').length} 件</span>`
+        : `<span style="color:#107c10">整理後 ${na} 件（${nb-na} 件を削減）</span>`}</span></div>
+    <table class="tb"><thead><tr><th style="width:62%">名前</th><th>更新日時</th><th>更新者</th></tr></thead>
+    <tbody>${rows.map(r=>{
+      const dup = r[1]==='dup', mv = r[1]==='mv';
+      const tag = dup?'<span class="tagdup">重複</span>':mv?'<span class="tagmv">PJサイトへ</span>':
+                  r[1]==='new'?'<span class="tagnew">統合</span>':r[1]==='add'?'<span class="tagnew">追加</span>':'';
+      return `<tr><td class="fo ${dup||mv?'del':''}">${esc(r[0])}${tag}</td>
+        <td style="color:#8a8886">2026/07/13</td><td style="color:#8a8886">構成案より</td></tr>`;
+    }).join("")}</tbody></table>
+    <div class="body"><div class="note">${f.msg}</div></div>
+  </div>`;
+}
+
+/* ---------- PJサイト（C） ---------- */
+function pjBody(){
+  const lib = LIBS.PJ.find(l=>l.k===curLib) || LIBS.PJ[0];
+  return `
+  <div class="card">
+    <h2><span class="badge b-c">C</span>${lib.n}<span class="lv">L3</span>
+      <span style="margin-left:auto;font-size:11.5px;color:#605e5c;font-weight:400">
+      権限：このPJの関係者のみ（PJ単位）</span></h2>
+    <div class="tool"><span class="nw">＋ 新規</span><span>↑ アップロード</span>
+      <span style="margin-left:auto;color:#605e5c">全PJ共通のテンプレート ${PJTMPL.length} フォルダ</span></div>
+    <table class="tb"><thead><tr><th style="width:62%">名前</th><th>更新日時</th><th>更新者</th></tr></thead>
+    <tbody>${PJTMPL.map(n=>`<tr><td class="fo">${esc(n)}</td>
+      <td style="color:#8a8886">—</td><td style="color:#8a8886">テンプレート</td></tr>`).join("")}</tbody></table>
+    <div class="body">
+      <div class="quote">
+        工場立ち上げ規模のPJに関しては任意のサイトを都度立ち上げで組織に合わせて権限付与→PJ終了後にナレッジを格納する構成に見直してほしい<br>
+        <span style="color:#8a8886">― 生産技術室 レビューシートより</span>
+      </div>
+      <div class="note o">
+        <b>PJ期間中はここで作業し、終了時に18サイトへ移します。</b><br>
+        PJごとに関係者が入れ替わるため、権限はPJ単位で持たせます。18サイト側の公開範囲（部署単位）とは切り離されます。<br>
+        終了時に移すのは「後で参照するもの」だけです。契約書は F03-02、完成図書は F13-01、設備仕様は F14-02 へ移します。
+      </div>
+      <div class="note g">
+        テンプレートは、各業務ライブラリに散らばっていた「プロジェクト(共通) ＞ PJ」配下のフォルダを1か所に集めたものです。
+        F03-02 契約管理・F04-05 請求書処理・F05-04 設備点検・F13-01 オフィス施設・F14-01 製品開発 など、
+        <b>9つのライブラリに同じPJ用フォルダが分散していました。</b>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---------- 描画 ---------- */
+function drawAll(){
+  drawHub(); drawSide(); drawHead();
+  el("pad").innerHTML = curDept ? deptBody() : (cur==="portal" ? portalBody() : libBody());
+}
+function go(id){ cur=id; curDept=null; curLib=(LIBS[id]||[{k:""}])[0].k; drawAll(); window.scrollTo(0,0); }
+function selLib(k){ curLib=k; curDept=null; drawAll(); }
+function setMode(m){ mode=m; drawAll(); }
+drawAll();
+</script>
+</body>
+</html>
