@@ -1,0 +1,570 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>サイト設計デモ v3.8 ― 第1階層ルール・主管部署・PJサイト・入力層サイト</title>
+<style>
+:root{--navy:#0b3d91;--ink:#1f1f1f;--gray:#605e5c;--line:#edebe9;--bg:#faf9f8;
+  --blue:#0f6cbd;--green:#107c10;--orange:#c55a11;--red:#a4262c;--purple:#5c2d91;--pale:#eef3fb}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI","Yu Gothic UI","Hiragino Sans",Meiryo,sans-serif;font-size:14px}
+.suite{height:48px;background:var(--navy);color:#fff;display:flex;align-items:center;padding:0 16px;gap:14px;position:sticky;top:0;z-index:40}
+.suite .brand{font-weight:600;font-size:15px}
+.suite .search{flex:1;max-width:520px;background:rgba(255,255,255,.15);border-radius:4px;padding:6px 12px;color:#dfe8f7;font-size:13px}
+.suite .me{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:12.5px}
+.suite .av{width:28px;height:28px;border-radius:50%;background:#5b8def;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px}
+.suite .ver{font-size:11px;background:#c55a11;border-radius:10px;padding:2px 9px;font-weight:700}
+.hub{background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:4px;padding:0 16px;height:44px;overflow-x:auto;position:sticky;top:48px;z-index:30}
+.hub .hname{display:flex;align-items:center;gap:8px;font-weight:600;margin-right:14px;white-space:nowrap;cursor:pointer}
+.hub .tile{width:22px;height:22px;border-radius:2px;background:var(--navy);color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;font-weight:700}
+.hub .hl{padding:0 12px;height:44px;display:flex;align-items:center;white-space:nowrap;cursor:pointer;font-size:13.5px;color:#323130;border-bottom:2px solid transparent}
+.hub .hl:hover{background:#f3f2f1}
+.hub .hl.on{border-bottom-color:var(--navy);font-weight:600;color:var(--navy)}
+.hub .hl.new{color:var(--orange)}
+.hub .hl.new::after{content:"NEW";font-size:9px;background:var(--orange);color:#fff;border-radius:8px;padding:1px 5px;margin-left:6px;font-weight:700}
+.hub .hl.trial{color:var(--purple)}
+.hub .hl.trial::after{content:"試験";font-size:9px;background:var(--purple);color:#fff;border-radius:8px;padding:1px 5px;margin-left:6px;font-weight:700}
+.wrap{display:flex;align-items:flex-start}
+.side{width:236px;flex:none;background:#fff;border-right:1px solid var(--line);min-height:calc(100vh - 92px);padding:14px 0}
+.side .sh{font-size:11px;color:var(--gray);padding:6px 18px;font-weight:600;letter-spacing:.04em}
+.side .li{padding:8px 18px;cursor:pointer;font-size:12.5px;border-left:3px solid transparent;line-height:1.35}
+.side .li:hover{background:#f3f2f1}
+.side .li.on{background:#eef3fb;border-left-color:var(--navy);font-weight:600;color:var(--navy)}
+.side .li small{display:block;color:var(--gray);font-weight:400;font-size:10.5px}
+.side hr{border:0;border-top:1px solid var(--line);margin:10px 14px}
+.main{flex:1;min-width:0;padding:0 0 60px}
+.shead{background:#fff;border-bottom:1px solid var(--line);padding:16px 26px 0}
+.shead .r1{display:flex;align-items:center;gap:14px}
+.shead .st{width:44px;height:44px;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px}
+.shead h1{margin:0;font-size:19px}
+.shead .sub{font-size:12px;color:var(--gray);display:flex;gap:14px;margin-top:3px;flex-wrap:wrap}
+.shead .nav{display:flex;gap:22px;margin-top:14px;font-size:13px}
+.shead .nav div{padding-bottom:9px;color:#484644}
+.shead .nav div.on{border-bottom:2px solid var(--navy);font-weight:600;color:var(--navy)}
+.pad{padding:22px 26px}
+.card{background:#fff;border:1px solid var(--line);border-radius:6px;margin-bottom:18px}
+.card>h2{margin:0;font-size:14px;padding:12px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.card .body{padding:14px 16px}
+.badge{font-size:10.5px;font-weight:700;border-radius:10px;padding:2px 9px;color:#fff;flex:none}
+.b1{background:var(--green)} .b2{background:var(--blue)} .b3{background:var(--orange)} .b4{background:var(--navy)} .b5{background:var(--red)} .b6{background:var(--purple)}
+.dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:9px}
+.dbtn{border:1px solid #cfd8e6;background:#f7faff;border-radius:5px;padding:11px 12px;cursor:pointer;display:flex;align-items:center;gap:9px;font-size:13px}
+.dbtn:hover{background:#eaf1fd;border-color:var(--navy)}
+.dbtn .ic{width:24px;height:24px;border-radius:3px;background:var(--navy);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;font-weight:700;flex:none}
+.tool{display:flex;align-items:center;gap:16px;padding:9px 16px;border-bottom:1px solid var(--line);font-size:13px;color:#323130;background:#fff;flex-wrap:wrap}
+.tool .nw{color:var(--blue);font-weight:600}
+.tb{width:100%;border-collapse:collapse;background:#fff;font-size:13px}
+.tb th{text-align:left;font-size:12px;color:var(--gray);font-weight:600;padding:8px 16px;border-bottom:1px solid var(--line);white-space:nowrap}
+.tb td{padding:8px 16px;border-bottom:1px solid #f5f4f3;vertical-align:top}
+.tb tr:hover td{background:#f7f7f7}
+.fo::before{content:"📁";margin-right:8px} .fi::before{content:"📄";margin-right:8px} .ls::before{content:"📋";margin-right:8px}
+.lv{font-size:10.5px;border-radius:3px;padding:1px 7px;border:1px solid #d6d6d6;color:var(--gray);white-space:nowrap}
+.del{color:#b9b9b9;text-decoration:line-through}
+.t{font-size:10px;border-radius:3px;padding:1px 6px;margin-left:8px;font-weight:700;white-space:nowrap}
+.t-dup{background:#fdecea;color:var(--red)} .t-del{background:#fdecea;color:var(--red)}
+.t-mv{background:#fdf2e9;color:var(--orange)} .t-out{background:#fdf2e9;color:var(--orange)} .t-frz{background:#f3f2f1;color:var(--gray)}
+.t-new{background:#e8f5e9;color:var(--green)} .t-ren{background:#e8f5e9;color:var(--green)} .t-add{background:#e8f5e9;color:var(--green)} .t-in{background:#e8f5e9;color:var(--green)}
+.t-perm{background:#eef3fb;color:var(--navy)} .t-hold{background:#f3f2f1;color:var(--gray)} .t-ext{background:#f1ecf9;color:var(--purple)} .t-ask{background:#fff8e1;color:#8a6d00}
+.tg{display:inline-flex;border:1px solid #cfd8e6;border-radius:16px;overflow:hidden;font-size:12px;margin-left:auto}
+.tg div{padding:5px 15px;cursor:pointer;background:#fff;color:var(--gray)}
+.tg div.on{background:var(--navy);color:#fff;font-weight:700}
+.note{background:#fffbe9;border-left:4px solid #e8b93a;padding:10px 14px;font-size:12.5px;line-height:1.65;border-radius:0 4px 4px 0;margin-top:12px}
+.note.g{background:#eef8ee;border-left-color:var(--green)} .note.o{background:#fdf4ec;border-left-color:var(--orange)}
+.note.b{background:#eef3fb;border-left-color:var(--navy)} .note.p{background:#f4eefb;border-left-color:var(--purple)} .note.r{background:#fdecea;border-left-color:var(--red)}
+.quote{font-size:12.5px;color:#4a4a4a;border-left:3px solid #cfd8e6;padding:3px 0 3px 12px;margin:8px 0;line-height:1.6}
+.quote small{color:#8a8886}
+.foot{padding:16px 26px;color:#8a8886;font-size:11.5px;border-top:1px solid var(--line);background:#fff;line-height:1.8}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:8px 14px;font-size:12.5px;line-height:1.6;align-items:start}
+.rule{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
+.rule div{border:1px solid #cfd8e6;border-radius:5px;padding:10px 12px;font-size:12.5px;line-height:1.55}
+.rule b{display:block;font-size:13.5px;color:var(--navy);margin-bottom:4px}
+.chk{display:inline-block;width:14px;height:14px;border:1.5px solid #8a8886;border-radius:2px;vertical-align:-2px}
+.own{font-weight:700;color:var(--navy)}
+.warn{color:var(--red);font-weight:700}
+@media(max-width:900px){.side{display:none}.rule{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="suite"><span>▦</span><span class="brand">SharePoint</span><div class="search">サイトとファイルを検索</div>
+  <div class="me"><span class="ver">v3.8 案</span><span>サンプル株式会社</span><div class="av">S</div></div></div>
+<div class="hub" id="hub"></div>
+<div class="wrap">
+  <div class="side" id="side"></div>
+  <div class="main">
+    <div class="shead" id="shead"></div>
+    <div class="pad" id="pad"></div>
+    <div class="foot">
+      設計をご確認いただくための試作画面です。実在のファイルは配置していません。<br>
+      掲載しているのは、レビューでご指摘のあったライブラリ（F01-01／F04-04／F05／F12／F14）の抜粋です。全19サイト・115ライブラリのうち一部のみを表示しています。
+      F05-01 の現行構成は、生産部のレビューシートが引用したパスを元にしています。<br>
+      v3.7 版（前回案）は <a href="../" style="color:#0f6cbd">こちら</a> に残しています。
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   v3.8 デモデータ（抜粋）
+   レビュー No.1〜71（ISO／WPS／品質技術／営業／購買／生産／生産技術）を反映
+   第1階層ルール：{部署名}／共有／PJ系は置かない
+   ============================================================ */
+const DEPTS=["管理本部","営業部","購買室","業務部","サービス部","生産部","WPS推進室","ISO管理室","生産技術室","品質技術課","経理部","情報システム部"];
+
+const SITES=[
+ {id:"portal",short:"SC",name:"全社ポータル",color:"#0b3d91",hub:true,desc:"全サイトの入口・規程・様式・通達",members:412},
+ {id:"F01",short:"F01",name:"F01 経営・ガバナンス",color:"#0f6cbd",desc:"経営計画・方針・規格",members:96},
+ {id:"F05",short:"F05",name:"F05 生産・洗濯・仕上げ",color:"#0f6cbd",desc:"生産計画・設備・実績",members:180},
+ {id:"F12",short:"F12",name:"F12 環境・安全衛生",color:"#0f6cbd",desc:"環境規制・省エネ・安全衛生",members:72},
+ {id:"F14",short:"F14",name:"F14 研究開発・技術・知財",color:"#0f6cbd",desc:"開発・技術資料・申請・特許",members:34},
+ {id:"PJ",short:"PJ",name:"立ち上げプロジェクト",color:"#c55a11",isnew:true,desc:"工場・拠点の立ち上げ。PJごとにサイトを作り、終了時にナレッジ層へ移します（19サイトの外）",members:24},
+ {id:"IN",short:"入",name:"入力層サイト（試験運用）",color:"#5c2d91",trial:true,desc:"生産部提案の2層構成。日々の入力はここ、承認済みデータだけをナレッジ層（19サイト）へ移します",members:60},
+ {id:"OWN",short:"主",name:"主管部署一覧",color:"#107c10",desc:"ライブラリごとの主管部署と公開範囲（確認会の記入用）",members:0},
+ {id:"ARC",short:"AR",name:"アーカイブ",color:"#797775",desc:"保存義務のみ・読み取り専用",members:412}
+];
+
+/* ライブラリ：owner=主管部署（v3.8で決める）、sg=現行の公開範囲 */
+const LIBS={
+ portal:[{k:"l2",n:"全社共有（規程・様式・通達）",lv:"L2",owner:"管理本部",sg:"全社"}],
+ F01:[{k:"F0101",n:"F01-01 経営計画・方針策定",lv:"L4",owner:"管理本部",sg:"管理本部"},
+      {k:"F0106",n:"F01-06 規格、基準",lv:"L4",owner:"管理本部",sg:"管理本部"}],
+ F05:[{k:"F0501",n:"F05-01 生産計画・工程管理",lv:"L4",owner:"生産部",sg:"生産部"},
+      {k:"F0504",n:"F05-04 設備点検・メンテナンス",lv:"L3",owner:"生産部",sg:"生産部"},
+      {k:"F0505",n:"F05-05 生産実績・歩留まり管理",lv:"L3",owner:"生産部",sg:"生産部"}],
+ F12:[{k:"F1201",n:"F12-01 環境規制遵守・環境管理",lv:"L3",owner:"生産部",sg:"生産部"},
+      {k:"F1206",n:"F12-06 エネルギー管理・省エネ活動",lv:"L3",owner:"生産部",sg:"生産部"}],
+ F14:[{k:"F1401",n:"F14-01 製品開発・研究プロジェクト",lv:"L3",owner:"生産技術室",sg:"技術部"},
+      {k:"F1402",n:"F14-02 技術資料・仕様管理",lv:"L3",owner:"生産技術室",sg:"技術部"},
+      {k:"F1403",n:"F14-03 試験・検証記録",lv:"L3",owner:"品質技術課",sg:"技術部"},
+      {k:"F1409",n:"F14-09 エネルギー管理/CN",lv:"L3",owner:"生産技術室",sg:"技術部",was:"F14-09 省エネ管理・会議"},
+      {k:"F1410",n:"F14-10 技術教育・ツール",lv:"L3",owner:"生産技術室",sg:"技術部",hold:true},
+      {k:"F1413",n:"F14-13 申請・特許管理",lv:"L3",owner:"生産技術室",sg:"生産部",was:"F14-13 特許管理"},
+      {k:"F1414",n:"F14-14 業務管理・報告書類",lv:"L3",owner:"生産技術室",sg:"技術部",was:"F14-14 業務計画・週報（＋F14-11を統合）"}],
+ PJ:[{k:"PJ01",n:"札幌PJ",lv:"L3",ex:true},{k:"PJ02",n:"京都PJ",lv:"L3",ex:true},
+     {k:"PJ03",n:"鹿児島PJ",lv:"L3"},{k:"PJ04",n:"七条PJ",lv:"L3"},{k:"PJ05",n:"開発案件",lv:"L3"},{k:"PJ06",n:"生産技術開発",lv:"L3"}],
+ IN:[{k:"IN01",n:"横軸：客室・宴会",lv:"L3"},{k:"IN02",n:"横軸：UF",lv:"L3"},{k:"IN03",n:"生産管理",lv:"L3"},
+     {k:"IN04",n:"拠点：福岡生産課",lv:"L3"},{k:"IN05",n:"拠点：木場生産課",lv:"L3"},{k:"IN06",n:"拠点：大阪第3生産課",lv:"L3"}],
+ OWN:[{k:"own",n:"主管部署一覧（抜粋）",lv:"—"}],
+ ARC:[{k:"arc",n:"アーカイブ（部署別）",lv:"—"}]
+};
+/* F04-04 は主管部署一覧にだけ出す */
+const EXTRA_LIBS=[{k:"F0404",n:"F04-04 購買契約・価格交渉",lv:"L4",owner:"購買室",sg:"生産部",users:["生産部","WPS推進室"],
+  fix:"購買室より「購買の権限で表示されない。仕入先との契約書は閲覧権限をつけてほしい」（No.12）。現行の公開範囲が生産部のみで、主管であるべき購買室が入っていませんでした。"}];
+
+/* タグ：dup重複 del削除 mv PJサイトへ out移動 frz凍結 new共有に統合 ren改名 add追加 in移入 perm権限 hold保留 ext既存サイト ask要協議 */
+const TAGL={dup:"重複",del:"削除",mv:"PJサイトへ",out:"移動",frz:"凍結",new:"共有に統合",ren:"改名",add:"追加",in:"移入",perm:"権限変更",hold:"保留",ext:"既存サイトを使用",ask:"要協議"};
+
+const FOL={
+ F0101:{
+  before:[
+   ["プロジェクト(共通) ＞ PJ ＞ 社長報告資料","mv"],
+   ["プロジェクト共通(共通) ＞ カミナシ管理 ＞ 会議資料",""],
+   ["プロジェクト共通(共通) ＞ 方針管理 ＞ 会社方針",""],
+   ["プロジェクト共通(共通) ＞ 方針管理 ＞ 業務実施計画","perm","課責任者 → 全部署"],
+   ["プロジェクト共通(共通) ＞ 方針管理 ＞ 部方針","perm","課責任者 → 全部署"],
+   ["プロジェクト共通(共通) ＞ 方針管理 ＞ 業務実施計画進捗管理","perm","→ ISO管理室のみ"],
+   ["WPS推進室(PJ) ＞ 04_会議・報告 ＞ WPS部連",""],
+   ["営業部(共通) ＞ 会議資料",""],
+   ["技術部(共通) ＞ 管理文書 ＞ 予算",""],
+   ["技術部(共通) ＞ 設備計画 ＞ 社長報告資料","mv"],
+   ["業務部(正式) ＞ 全体 ＞ 業務実施計画",""],
+   ["生産部PJ(正式) ＞ 方針管理 ＞ 部方針",""],
+   ["生産部PJ(正式) ＞ 日常運営・計画 ＞ 生販会議",""]],
+  after:[
+   ["共有 ＞ 方針管理 ＞ 会社方針","ren","旧：プロジェクト共通(共通)"],
+   ["共有 ＞ 方針管理 ＞ 業務実施計画","perm","全部署が閲覧（ISO No.1）"],
+   ["共有 ＞ 方針管理 ＞ 部方針","perm","全部署が閲覧（ISO No.2）"],
+   ["共有 ＞ 方針管理 ＞ 業務実施計画進捗管理","perm","ISO管理室のみ（ISO No.3）"],
+   ["共有 ＞ カミナシ管理 ＞ 会議資料",""],
+   ["WPS推進室 ＞ 会議・報告 ＞ WPS部連","ren","旧：WPS推進室(PJ)"],
+   ["営業部 ＞ 会議資料","ren"],
+   ["技術部 ＞ 管理文書 ＞ 予算","ren"],
+   ["業務部 ＞ 業務実施計画","ren"],
+   ["生産部 ＞ 方針管理 ＞ 部方針","ren","旧：生産部PJ(正式)"],
+   ["生産部 ＞ 会議 ＞ 生販会議","ren"]],
+  msg:"ISO管理室の公開範囲変更3件（No.1〜3）を反映しました。「プロジェクト共通(共通)」は部署名ではないため「共有」に改名し、方針管理はこのライブラリに残します。社長報告資料はPJ性のためPJサイトへ移します。",
+  q:[["部署によっては課員が開く場合がある。構成案の権限を課責任者から全部署へ変更","ISO管理室 No.1・2"],["ＩＳＯ管理室内での記録。構成案の権限をＩＳＯ管理室に変更","ISO管理室 No.3"]]},
+
+ F0106:{
+  before:[["WPS推進室(PJ) ＞ 02_標準化 ＞ 規格",""],["WPS推進室(PJ) ＞ 02_標準化 ＞ 基準書",""],["生産部PJ(正式) ＞ 標準・基準 ＞ 作業標準",""],["生産部PJ(正式) ＞ 標準・基準 ＞ 品質基準",""]],
+  after:[["WPS推進室 ＞ 標準化 ＞ 規格","ren"],["WPS推進室 ＞ 標準化 ＞ 基準書","ren"],["生産部 ＞ 標準・基準 ＞ 作業標準","ren"],["生産部 ＞ 標準・基準 ＞ 品質基準","ren"]],
+  msg:"現行の公開範囲は管理本部のみで、中身のWPS推進室・生産部が入っていませんでした。v3.8では公開範囲＝主管（管理本部）＋WPS推進室＋生産部になります。WPS推進室の「どこにあるか分からない」（No.4）の機械的な原因のひとつです。",
+  q:[["こちらで提出した構成が複数にまたがってバラバラになっているので文書の保存先がどこにあるのかわからない","改善推進室（WPS） No.5"]]},
+
+ F0501:{
+  before:[
+   ["3.4.助成金対応 ＞ 20〇〇年〇月△△設備","ask","No.14 帳簿型へ"],
+   ["UF ＞ 受注","del","No.15 生産の業務ではない"],
+   ["不適合・再洗管理 ＞ 再洗分析・集計","ren","No.16 名称"],
+   ["不適合・再洗管理 ＞ 再洗率","del","No.18 重複"],
+   ["不適合・再洗管理 ＞ 再洗理由分類","del","No.19 重複"],
+   ["不適合・再洗管理 ＞ 再洗記録",""],
+   ["人員管理 ＞ 配置・計画","ask","No.21・22 総務と協議／拠点別"],
+   ["全体 ＞ 総務人事","del","No.23 用途不明"],
+   ["処理能力","ask","No.24 実績か設備能力か"],
+   ["日常運営・計画 ＞ 会議議事録","out","No.25 会議の大区分へ"],
+   ["日常運営・計画 ＞ 安全衛生委員会","out","No.26 全社委員会は F12-03 へ"],
+   ["日常運営・計画 ＞ 生販会議","out","No.25 会議の大区分へ"],
+   ["日次","del","No.28 用途不明"],
+   ["月次","del","No.29 用途不明"],
+   ["棚卸 ＞ 予定表","out","No.30 業務部へ"],
+   ["業務共通基盤 ＞ スリングバッグ基礎データ",""],
+   ["稟議 ＞ 予算内・外、後稟議","del","No.32 ワークフローが正本"],
+   ["計測 ＞ 蒸気流量","frz","No.33 経費日報の設計待ち"],
+   ["棚卸予実管理表（リスト）","out","No.34 業務部へ",true],
+   ["新規品変作業進捗表（リスト）","ask","No.35 用途説明",true],
+   ["シフト表（リスト）","ask","No.37 配置・計画と重複？",true],
+   ["工程別能力表（リスト）","out","No.39 F14-02 へ",true],
+   ["得意先別マスタ（リスト）","frz","No.40 WINSが正本",true]],
+  after:[
+   ["生産部 ＞ 助成金対応 ＞ 2026年度 ＞ ○○助成金","ren","帳簿型（年度＞案件）。経理と保存要件を確認"],
+   ["生産部 ＞ 再洗管理 ＞ 再洗記録","ren","一次データ"],
+   ["生産部 ＞ 再洗管理 ＞ 再洗分析・集計","ren","加工後。「不適合」はISO用語のため説明に併記"],
+   ["生産部 ＞ 再洗管理 ＞ 返品","add","No.17"],
+   ["生産部 ＞ 人員管理 ＞ 配置・計画 ＞ ※拠点","ask","拠点軸はフォルダか列か、全社で決める（No.22）"],
+   ["生産部 ＞ 会議 ＞ 生販会議","in","日常運営から分離（No.25）"],
+   ["生産部 ＞ 会議 ＞ 横軸会議 ＞ UF／宴会／客室","add","No.27。正本はここ、参照はリンク"],
+   ["生産部 ＞ 会議 ＞ 会議議事録","in"],
+   ["生産部 ＞ 会議 ＞ 食品安全委員会","ren","全社安全衛生委員会と分離（No.26）"],
+   ["生産部 ＞ 業務共通基盤 ＞ スリングバッグ基礎データ",""],
+   ["生産部 ＞ 業務共通基盤 ＞ 順序生産システム基礎データ","add","No.31"],
+   ["生産部 ＞ 業務共通基盤 ＞ スリングバッグ基礎データ（F14-02から移入）","in","生産部のものなので F05 へ"],
+   ["営業部 ＞ 帳票","ren"],
+   ["業務部 ＞ UF ＞ 加工","ren"],
+   ["業務部 ＞ 客室宴会 ＞ 加工","ren"]],
+  msg:"生産部のレビュー（No.13〜40）を反映しました。削除7・移動6・追加3・要協議5です。「処理能力」は設備能力（マスタ）を F14-02、処理実績を F05-05 に分けて置きます（No.24）。棚卸系3件は業務部との協議後に移します。",
+  q:[["ナレッジ別になっていると入力・保存での作業工数が大幅に上がるので、一旦このフォルダ構成自体を見直したい。拠点別の入力構成とナレッジ構成を2部した案をデジライズと折衷したい","生産部 No.59"],["何に用いるのかわからない。お客様からの受注であれば生産の業務ではない","生産部 No.15"]]},
+
+ F0504:{
+  before:[
+   ["プロジェクト(共通) ＞ PJ ＞ 工事チェックリスト","mv"],
+   ["プロジェクト(共通) ＞ PJ ＞ 工事立会","mv"],
+   ["技術部(共通) ＞ 研究室 ＞ 設備・機器","out","No.45 研究室は F14-01 へ"],
+   ["技術部(共通) ＞ 管理文書 ＞ 設備更新管理","out","No.46 F14-02 へ"],
+   ["技術部(共通) ＞ 設備計画 ＞ 工事チェックリスト","mv"],
+   ["技術部(共通) ＞ 設備計画 ＞ 工事立会","mv"],
+   ["生産部PJ(正式) ＞ 点検・予防 ＞ 設備点検",""],
+   ["生産部PJ(正式) ＞ 点検・保守 ＞ 修理履歴","frz","No.42 カミナシが正本"],
+   ["生産部PJ(正式) ＞ 点検・保守 ＞ 定期点検","frz","No.43 カミナシが正本"],
+   ["生産部PJ(正式) ＞ 点検・保守 ＞ 日常点検","frz","No.44 カミナシが正本"],
+   ["生産部PJ(正式) ＞ 設備管理資料 ＞ 共通","out","No.47 F14-02 へ"],
+   ["生産部PJ(正式) ＞ 設備計画","out","No.48・49 F14-02 へ"],
+   ["生産部PJ(正式) ＞ 設備資料 ＞ 仕様・図面","out","No.50 F14-02 へ"],
+   ["生産部PJ(正式) ＞ 設備資料 ＞ 設定一覧","out","No.51 F14-02 へ"],
+   ["生産部PJ(正式) ＞ 設備資料 ＞ 部材管理","del","No.52 業務が存在しない"],
+   ["全体 ＞ 帳票","frz","No.41 カミナシが正本"],
+   ["メーカー定期点検・診断・レポート報告（リスト）","ask","No.53 重要レポートのみ電子化",true]],
+  after:[
+   ["生産部 ＞ 点検・予防 ＞ 設備点検","ren"],
+   ["生産部 ＞ 点検・保守 ＞ 修理履歴（カミナシ連携待ち）","frz","二重保存しない。カミナシから自動連携できるまで凍結"],
+   ["生産部 ＞ メーカー定期点検レポート（重要分のみ）","ren","全件スキャンは求めない（No.53）"]],
+  msg:"設備系6件（No.46〜51）と工程別能力表（No.39）は、生産部・生産技術室の双方が「F14の要件」と一致しているため F14-02 へ移します。カミナシで管理している点検記録4件（No.41〜44）は二重保存せず凍結します。結果、このライブラリは大きく縮みます。",
+  q:[["生産技術部のF14の要件。F14への移動を討議してください","生産部 No.46〜51"],["カミナシで管理しているデータが移行するのか？移行しないのであればここは使われないのでは？","生産部 No.41〜44"]]},
+
+ F0505:{
+  before:[
+   ["生産部(正式) ＞ 生産実績 ＞ 日次",""],["生産部(正式) ＞ 生産実績 ＞ 月次",""],
+   ["検針記録 ＞ ガス","new","No.54 1枚の帳簿を3分割している"],["検針記録 ＞ 水道","new"],["検針記録 ＞ 電気","new"],
+   ["仕上げデータ（リスト）","frz","No.55 WINSのコピペ",true],
+   ["生産日報（リスト）","frz","No.56 WINSのコピペ",true],
+   ["経費日報（リスト）","ask","No.57 正本にするか",true],
+   ["使用量記録（リスト）","del","No.58 用途不明",true]],
+  after:[
+   ["生産部 ＞ 生産実績 ＞ 日次","ren"],["生産部 ＞ 生産実績 ＞ 月次","ren"],
+   ["生産部 ＞ 検針記録（ガス・水道・電気）","new","入力帳簿と同じ1フォルダに（No.54）"],
+   ["生産部 ＞ 処理実績","in","F05-01「処理能力」の実績側（No.24）"],
+   ["生産部 ＞ KPI ＞ ※工場別","in","F14-09 から。生産のKPIは技術部の対象外（生産技術 No.67）"],
+   ["経費日報（リスト）＝経費データの正本","perm","蒸気流量・使用量記録はここに集約（No.57）",true]],
+  msg:"検針記録は現場の入力帳簿がガス・水道・電気で1枚のため、1フォルダに統合します。WINSの内部データを手でコピーするリスト（仕上げデータ・生産日報）は採用せず、自動連携ができるまで凍結します。工場別KPIをここに置きます。",
+  q:[["多くの拠点が入力帳簿のガス・水道・電気が1枚にまとまっているのでフォルダを分けると入力工数が上がる","生産部 No.54"],["WINSの内部データを自動で送る仕組みをつくれば、ここのフォルダは不要か自動化すべき","生産部 No.55・56"]]},
+
+ F1201:{
+  before:[
+   ["プロジェクト(共通) ＞ 環境法規","mv"],
+   ["技術・生産・WPS共有(共通) ＞ コンプライアンス ＞ PRTR法",""],["技術・生産・WPS共有(共通) ＞ コンプライアンス ＞ SDS",""],
+   ["技術・生産・WPS共有(共通) ＞ コンプライアンス ＞ 化学物質のリスクアセスメント",""],
+   ["技術・生産・WPS共有(共通) ＞ 省エネ ＞ カーボンニュートラル",""],
+   ["技術・生産共有(共通) ＞ 環境法規 ＞ 報告書","dup"],["技術・生産共有(共通) ＞ 環境法規 ＞ 測定結果","dup"],
+   ["技術・生産共有(共通) ＞ 環境法規 ＞ 環境法規規制値管理表","dup"],["技術・生産共有(共通) ＞ 環境法規 ＞ 環境法規規制値集計表",""],
+   ["技術部(共通) ＞ コンプライアンス ＞ PRTR法","dup"],["技術部(共通) ＞ コンプライアンス ＞ SDS","dup"],
+   ["技術部(共通) ＞ コンプライアンス ＞ 化学物質のリスクアセスメント","dup"],
+   ["技術部(共通) ＞ 環境法規 ＞ 報告書","dup"],["技術部(共通) ＞ 環境法規 ＞ 測定結果","dup"],["技術部(共通) ＞ 環境法規 ＞ 環境法規規制値管理表","dup"],
+   ["生産部PJ(正式) ＞ 環境管理 ＞ 排水・水質",""],["総務系業務 ＞ 環境対応",""]],
+  after:[
+   ["共有 ＞ コンプライアンス ＞ PRTR法","new","3本 → 1本"],["共有 ＞ コンプライアンス ＞ SDS","new"],["共有 ＞ コンプライアンス ＞ 化学物質のリスクアセスメント","new"],
+   ["共有 ＞ 環境法規 ＞ 報告書","new"],["共有 ＞ 環境法規 ＞ 測定結果","new"],["共有 ＞ 環境法規 ＞ 環境法規規制値管理表","new"],["共有 ＞ 環境法規 ＞ 環境法規規制値集計表","new"],
+   ["共有 ＞ 省エネ ＞ カーボンニュートラル","new"],
+   ["生産部 ＞ 環境管理 ＞ 排水・水質","ren"],["管理本部 ＞ 環境対応","ren","旧：総務系業務"],
+   ["WPS推進室 ＞ 環境活動","add","WPS推進室の5フォルダの置き場。公開範囲に WPS推進室 を追加"]],
+  msg:"品質技術課の指摘（No.8）どおり、「技術・生産・WPS共有(共通)」「技術・生産共有(共通)」「技術部(共通)」の3本を1本に統合しました。第1階層ルールでは共有フォルダは「共有」1本だけです。誰が書けるかはライブラリの公開範囲（主管＋利用部署）で決まります。",
+  q:[["F12-01 ＞ 技術部(共通) ＞ コンプライアンスのフォルダと内容が重複している。どちらかに統一","品質技術課 No.8"]]},
+
+ F1206:{
+  before:[
+   ["技術・生産・WPS共有(共通) ＞ 省エネ ＞ 外部コンサル",""],["技術・生産・WPS共有(共通) ＞ 省エネ ＞ 省エネ管理板",""],
+   ["技術部(共通) ＞ 省エネ ＞ UF省エネ会議",""],["技術部(共通) ＞ 省エネ ＞ 外部コンサル","dup"],["技術部(共通) ＞ 省エネ ＞ 省エネ管理板","dup"],
+   ["生産部(正式) ＞ 検針記録 ＞ ガス","out","F05-05 へ統合（No.54）"],["生産部(正式) ＞ 検針記録 ＞ 水道","out"],["生産部(正式) ＞ 検針記録 ＞ 蒸気","out"],["生産部(正式) ＞ 検針記録 ＞ 電気","out"],
+   ["生産部PJ(正式) ＞ 省エネ・改善活動 ＞ 活動計画",""],["生産部PJ(正式) ＞ 省エネ・改善活動 ＞ 活動実績",""],["生産部PJ(正式) ＞ 省エネ・改善活動 ＞ 省エネパトロール",""]],
+  after:[
+   ["共有 ＞ 省エネ ＞ 外部コンサル","new"],["共有 ＞ 省エネ ＞ 省エネ管理板","new"],["共有 ＞ 省エネ ＞ UF省エネ会議","new","技術部側にしかなかった分も統合先へ"],
+   ["生産部 ＞ 省エネ・改善活動 ＞ 活動計画","ren"],["生産部 ＞ 省エネ・改善活動 ＞ 活動実績","ren"],["生産部 ＞ 省エネ・改善活動 ＞ 省エネパトロール","ren"],
+   ["WPS推進室 ＞ 改善活動","add","WPS推進室の省エネ関連の置き場。公開範囲に WPS推進室 を追加"]],
+  msg:"品質技術課 No.9 の重複を統合しました。検針記録は現場の帳簿単位に合わせて F05-05 に1フォルダで置きます（生産部 No.54）。",
+  q:[["F12-06 ＞ 技術部(共通) ＞ 省エネのフォルダと内容が重複している。どちらかに統一","品質技術課 No.9"]]},
+
+ F1401:{
+  before:[
+   ["PJ ＞ 必要数","mv"],["プロジェクト(共通) ＞ PJ ＞ 検収","mv"],["プロジェクト(共通) ＞ PJ ＞ 注文書","mv"],["プロジェクト(共通) ＞ PJ ＞ 立会報告書","mv"],
+   ["プロジェクト(共通) ＞ PJ ＞ 設備導入進捗確認書","mv"],["プロジェクト(共通) ＞ PJ ＞ 請書","mv"],
+   ["技術部(共通) ＞ 工場立ち上げ ＞ PJ","mv"],["技術部(共通) ＞ 研究室",""],["技術部(共通) ＞ 設備計画 ＞ 設備導入進捗確認書","mv"],
+   ["技術部(共通) ＞ 開発 ＞ AI検査機",""],["技術部(共通) ＞ 開発 ＞ AMR",""],["技術部(共通) ＞ 開発 ＞ 企画構想",""],
+   ["技術部(共通) ＞ 開発 ＞ 化学メーカーA共同開発",""],["技術部(共通) ＞ 開発 ＞ 完了報告書",""],["技術部(共通) ＞ 開発 ＞ 展示会",""],
+   ["生産部PJ(正式) ＞ プロジェクト ＞ プロジェクト名","mv"]],
+  after:[
+   ["技術部 ＞ 開発 ＞ AI検査機","ren"],["技術部 ＞ 開発 ＞ AMR","ren"],["技術部 ＞ 開発 ＞ 企画構想","ren"],
+   ["技術部 ＞ 開発 ＞ 化学メーカーA共同開発","ren"],["技術部 ＞ 開発 ＞ 展示会","ren"],
+   ["技術部 ＞ 研究室 ＞ 設備・機器","in","F05-04 から（生産部 No.45）"],
+   ["技術部 ＞ 完了PJ ＞ ※PJ名 ＞ 完了報告書・フィードバック","add","PJサイト終了時の受け皿（生産技術 No.65）"]],
+  msg:"「プロジェクト(共通)と技術部(共通)で使い分けが分からない」（No.65）に対し、PJ性のフォルダはすべてPJサイトへ移し、このライブラリには開発成果と「完了PJ」の受け皿だけを残します。",
+  q:[["プロジェクトでフォルダを持つ場合はサイトを持たないとPJごとに権限が変わるので実務的な運用が難しい","生産技術室 No.65"]]},
+
+ F1402:{
+  before:[
+   ["プロジェクト(共通) ＞ PJ ＞ レイアウト図","mv"],["プロジェクト(共通) ＞ PJ ＞ 製作図","mv"],["プロジェクト(共通) ＞ PJ ＞ 設備仕様書","mv"],["プロジェクト(共通) ＞ PJ ＞ 設計計算書","mv"],
+   ["技術部(共通) ＞ 管理文書 ＞ 仕様書",""],["技術部(共通) ＞ 管理文書 ＞ 取扱説明書",""],["技術部(共通) ＞ 管理文書 ＞ 手順書",""],
+   ["技術部(共通) ＞ 設備計画 ＞ レイアウト図",""],["技術部(共通) ＞ 設備計画 ＞ 製作図",""],["技術部(共通) ＞ 設備計画 ＞ 設備仕様書",""],
+   ["生産部PJ(正式) ＞ 業務共通基盤 ＞ スリングバッグ基礎データ","out","生産部のもの → F05-01"]],
+  after:[
+   ["技術部 ＞ 管理文書 ＞ 仕様書","ren"],["技術部 ＞ 管理文書 ＞ 取扱説明書","ren"],["技術部 ＞ 管理文書 ＞ 手順書","ren"],
+   ["技術部 ＞ 設備計画 ＞ レイアウト図","ren"],["技術部 ＞ 設備計画 ＞ 製作図","ren"],["技術部 ＞ 設備計画 ＞ 設備仕様書","ren"],
+   ["技術部 ＞ 工事管理文書","add","工事時に使う管理台帳のフォーマット置き場（No.66）"],
+   ["技術部 ＞ 設備台帳 ＞ 設備更新管理","in","F05-04 から（No.46）"],["技術部 ＞ 設備台帳 ＞ 設備管理資料","in","F05-04 から（No.47）"],
+   ["技術部 ＞ 設備台帳 ＞ 設備計画","in","F05-04 から（No.48・49）"],["技術部 ＞ 設備台帳 ＞ 仕様・図面","in","F05-04 から（No.50）"],
+   ["技術部 ＞ 設備台帳 ＞ 設定一覧","in","F05-04 から（No.51）"],
+   ["技術部 ＞ 設備台帳 ＞ 設備能力（工程別能力表）","in","F05-01 から（No.24・39）"]],
+  msg:"工事管理文書を追加（No.66）。生産部・生産技術室の双方が一致した設備系文書7件を F05-04／F05-01 から移入し、「設備台帳」にまとめました。主管を生産技術室に置き、公開範囲に生産部を加えます。",
+  q:[["工程管理のための帳票類の保存先を分けて管理したい。「工事管理文書」のフォルダの追加","生産技術室 No.66"]]},
+
+ F1403:{
+  before:[
+   ["技術部(共通) ＞ 品質管理 ＞ 検証データ",""],["技術部(共通) ＞ 品質管理 ＞ 滴定レポート",""],
+   ["技術部(共通) ＞ 品質管理 ＞ 自社試験布","ren","No.7"],
+   ["技術部(共通) ＞ 試験報告書 ＞ 試験依頼書","ext","No.6"],["技術部(共通) ＞ 試験報告書 ＞ 実施中試験報告書","ext"],
+   ["技術部(共通) ＞ 試験報告書 ＞ 依頼者入力待ち試験報告書","ext"],["技術部(共通) ＞ 試験報告書 ＞ 依頼外試験報告書","ext"],
+   ["技術部(共通) ＞ 試験報告書 ＞ 完了試験報告書","ext"],
+   ["生産部PJ(正式) ＞ 計測 ＞ 照度",""],["生産部PJ(正式) ＞ 計測 ＞ 蒸気流量","out","F05-05 経費日報へ（No.33）"]],
+  after:[
+   ["品質技術課 ＞ 品質管理 ＞ 検証データ","ren"],["品質技術課 ＞ 品質管理 ＞ 滴定レポート","ren"],
+   ["品質技術課 ＞ 品質管理 ＞ WEX試験布","ren","自社試験布 → WEX試験布（No.7）"],
+   ["品質技術課 ＞ 完了試験報告書（既存サイトから連携）","ext","完了分のみ。試験依頼〜実施中は既存サイトのリスト＋ワークフローを継続"],
+   ["生産部 ＞ 計測 ＞ 照度","ren"]],
+  msg:"品質技術課が構築済みの試験報告書サイト（リスト＋ワークフロー）はそのまま使い、ハブに関連付けます。稼働中のワークフローを壊さないため、このライブラリには完了報告書だけを連携します（No.6）。主管は品質技術課です。",
+  q:[["試験報告書に関する基盤リストとワークフローを別サイトで構築済みなので活用したい。独立したサイトを設ける","品質技術課 No.6"]]},
+
+ F1409:{
+  before:[
+   ["技術・生産・WPS共有(共通) ＞ 省エネ ＞ UF・宴会省エネ会議",""],["技術・生産・WPS共有(共通) ＞ 省エネ ＞ 中部省エネ会議",""],
+   ["技術・生産・WPS共有(共通) ＞ 省エネ ＞ 全社省エネ会議",""],["技術・生産・WPS共有(共通) ＞ 省エネ ＞ 客室・宴会省エネ会議",""],
+   ["技術・生産・WPS共有(共通) ＞ 省エネ ＞ 関東省エネ会議",""],["技術・生産・WPS共有(共通) ＞ 省エネ ＞ 関西省エネ会議",""],
+   ["技術部(共通) ＞ 省エネ ＞ 中部省エネ会議","dup"],["技術部(共通) ＞ 省エネ ＞ 全社省エネ会議","dup"],
+   ["技術部(共通) ＞ 省エネ ＞ 客室・宴会省エネ会議","dup"],["技術部(共通) ＞ 省エネ ＞ 関東省エネ会議","dup"],["技術部(共通) ＞ 省エネ ＞ 関西省エネ会議","dup"],
+   ["（生産のKPI指標ファイル群）","out","No.67 F05-05 工場別KPIへ"]],
+  after:[
+   ["共有 ＞ 省エネ会議 ＞ 全社","new"],["共有 ＞ 省エネ会議 ＞ 関東","new"],["共有 ＞ 省エネ会議 ＞ 中部","new"],["共有 ＞ 省エネ会議 ＞ 関西","new"],
+   ["共有 ＞ 省エネ会議 ＞ UF・宴会","new"],["共有 ＞ 省エネ会議 ＞ 客室・宴会","new"],
+   ["技術部 ＞ カーボンニュートラル ＞ 計画","add","改称「エネルギー管理/CN」に合わせて"]],
+  msg:"品質技術課 No.10 の重複5本を統合し、生産技術室の提案（No.67）でライブラリ名を「エネルギー管理/CN」に改めました。生産のKPI指標は技術部の業務対象外のため F05-05 の工場別KPIへ移します。",
+  q:[["生産のKPI指標のファイルが多いので、そもそものサイトが異なる。技術部の業務対象外になる","生産技術室 No.67"]]},
+
+ F1410:{
+  before:[["技術部(共通) ＞ 研究室 ＞ マクロツール","hold","No.68 使用用途がない"]],
+  after:[["（保留：他部署の利用予定がなければ廃止）","hold"]],
+  msg:"生産技術室より「現状は使用用途がない。使わない（意図があるなら保留）」（No.68）。設計意図を確認し、他部署の利用予定もなければ廃止します。",q:[]},
+
+ F1413:{
+  before:[["（格納先を確認中）","ask","現行は公開範囲＝生産部。要確認"]],
+  after:[
+   ["技術部 ＞ 特許管理","add"],
+   ["技術部 ＞ 申請文書 ＞ エネルギー関係","add","No.70"],["技術部 ＞ 申請文書 ＞ 廃棄物関係","add"],
+   ["技術部 ＞ 申請文書 ＞ 投資・補助金関係","add","F05-01 助成金対応（No.14）との重複を確認"],
+   ["技術部 ＞ 申請文書 ＞ カーボンニュートラル","add"],["技術部 ＞ 申請文書 ＞ その他","add"]],
+  msg:"「特許管理」を「申請・特許管理」に改称し、申請文書5種を追加しました（No.70）。現行の公開範囲が生産部になっている点は設計データの誤りの可能性があり、主管を生産技術室に置き直します。",
+  q:[["名称変更して申請・特許管理の統合フォルダにしたい","生産技術室 No.70"]]},
+
+ F1414:{
+  before:[
+   ["技術部(共通) ＞ 管理文書 ＞ 業務実施計画",""],["技術部(共通) ＞ 管理文書 ＞ 週報",""],
+   ["【F14-11】技術部(共通) ＞ 管理文書 ＞ 会議資料","in","No.69 F14-11 を統合"],["【F14-11】技術部(共通) ＞ 管理文書 ＞ 課内ミーティング","in"],
+   ["【F14-11】技術部(共通) ＞ 設備計画 ＞ サービス関連資料 ほか5","in"],["【F14-11】プロジェクト(共通) ＞ PJ ＞ 営業関連資料 ほか5","mv"]],
+  after:[
+   ["技術部 ＞ 注文記録 ＞ 注文書","add","購買室の分類と境界確認"],["技術部 ＞ 注文記録 ＞ 検収進捗管理","add"],
+   ["技術部 ＞ 仕入れ先データ ＞ 請求書","add","購買室の分類と境界確認"],["技術部 ＞ 仕入れ先データ ＞ 仕入先台帳","add"],
+   ["技術部 ＞ 工程管理記録 ＞ 工事日報","add"],["技術部 ＞ 工程管理記録 ＞ KYシート","add"],
+   ["技術部 ＞ 会議資料 ＞ 経営会議資料","add"],["技術部 ＞ 会議資料 ＞ エリア会議資料","add"],["技術部 ＞ 会議資料 ＞ 生産部会議資料","add"],["技術部 ＞ 会議資料 ＞ 省エネ会議資料","add"],
+   ["技術部 ＞ 役員報告","add"],
+   ["技術部 ＞ 年度設備計画 ＞ 予算関連","add"],["技術部 ＞ 年度設備計画 ＞ 設備計画","add"],
+   ["技術部 ＞ 業務実施計画","ren"],["技術部 ＞ 週報","ren"],["技術部 ＞ 課内ミーティング","in","F14-11 から"]],
+  msg:"F14-11 を統合し（No.69）、「業務管理・報告書類」に改称して生産技術室の13フォルダ案を反映しました（No.71）。注文記録・仕入れ先データは購買室の分類と重複しないかだけ確認が要ります。",
+  q:[["報告資料は週報などと同じ区分で統一したい。F14-14と統合したい","生産技術室 No.69"]]}
+};
+
+const PJTMPL=["01_契約・見積 ＞ 契約書","01_契約・見積 ＞ 見積書","01_契約・見積 ＞ 注文書","01_契約・見積 ＞ 請書","01_契約・見積 ＞ 検収",
+ "02_設計・仕様 ＞ 設備仕様書","02_設計・仕様 ＞ 製作図","02_設計・仕様 ＞ レイアウト図","02_設計・仕様 ＞ 機械割当図","02_設計・仕様 ＞ 計画設備一覧(諸元表)","02_設計・仕様 ＞ 設計計算書",
+ "03_工事・立会 ＞ 工事チェックリスト","03_工事・立会 ＞ 工事立会","03_工事・立会 ＞ 立会報告書","03_工事・立会 ＞ 設備導入進捗確認書",
+ "04_許認可 ＞ 役所提出書類","04_許認可 ＞ 環境法規",
+ "05_完成図書 ＞ 竣工図","05_完成図書 ＞ 完成引渡書",
+ "06_報告 ＞ 社長報告資料","06_報告 ＞ 関連資料（営業・業務・サービス・生産・総務・システム）",
+ "99_終了時 ＞ ナレッジ層へ移すもの（完了報告書・フィードバック）"];
+const INTMPL=["01_会議・議事録","02_進捗確認データ ＞ 日次","02_進捗確認データ ＞ 月次","03_ナレッジ承認 ＞ 承認待ち","03_ナレッジ承認 ＞ 承認済み（→ 19サイトへ移す）"];
+
+/* ============================================================ */
+let cur="portal",curLib="l2",mode="after",curDept=null;
+const el=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");
+const ALL=[...Object.values(LIBS).flat(),...EXTRA_LIBS];
+const tag=(c,note)=>c?`<span class="t t-${c}">${TAGL[c]||c}${note?"：":""}</span>${note?`<span style="font-size:11px;color:#8a8886">${esc(note)}</span>`:""}`:"";
+
+/* 第1階層ルールから利用部署を導く */
+function users(k){const f=FOL[k];if(!f)return[];const s=new Set();
+  f.after.forEach(r=>{const t=r[0].split(" ＞ ")[0].replace(/（.*$/,"");if(DEPTS.includes(t))s.add(t);});return[...s];}
+
+function drawHub(){
+ el("hub").innerHTML=`<div class="hname" onclick="go('portal')"><span class="tile">SC</span>サンプル株式会社 ポータル</div>`+
+  SITES.filter(s=>!s.hub).map(s=>`<div class="hl ${s.id===cur?"on":""} ${s.isnew?"new":""} ${s.trial?"trial":""}" onclick="go('${s.id}')">${s.name}</div>`).join("");
+}
+function drawSide(){
+ const libs=LIBS[cur]||[];
+ el("side").innerHTML=`<div class="sh">ドキュメント ライブラリ</div>`+
+  libs.map(l=>`<div class="li ${l.k===curLib?"on":""}" onclick="selLib('${l.k}')">${l.n}${l.was?`<small>旧：${l.was}</small>`:""}${l.ex?`<small>既存サイト</small>`:""}${l.hold?`<small>保留</small>`:""}</div>`).join("")+
+  `<hr><div class="sh">サイト</div><div class="li" onclick="go('portal')">ホーム</div><div class="li">ごみ箱</div><div class="li">サイト コンテンツ</div>`;
+}
+function drawHead(){
+ const s=SITES.find(x=>x.id===cur);
+ el("shead").innerHTML=`<div class="r1"><div class="st" style="background:${s.color}">${s.short}</div>
+  <div><h1>${s.name}</h1><div class="sub"><span>${s.hub?"ハブ サイト":s.id==="OWN"?"設計資料":"チーム サイト"}</span><span>${s.desc}</span>${s.members?`<span>👥 ${s.members}人</span>`:""}</div></div></div>
+  <div class="nav"><div class="on">ホーム</div><div>ドキュメント</div><div>ページ</div><div>サイト コンテンツ</div></div>`;
+}
+
+/* ---------- ポータル ---------- */
+function portalBody(){return`
+ <div class="card"><h2><span class="badge b2">A</span>自部署のフォルダはこちら</h2><div class="body">
+  <div style="font-size:12.5px;color:#605e5c;margin-bottom:12px">サイトは業務の種類で分かれています。自部署の文書がどのサイトに入っているかは、ここから確認できます。</div>
+  <div class="dgrid">${DEPTS.map(d=>`<div class="dbtn" onclick="openDept('${d}')"><span class="ic">${d.slice(0,2)}</span>${d}</div>`).join("")}</div>
+  <div class="note g"><b>この一覧は手で作りません。</b>「自部署が主管のライブラリ」＋「他ライブラリの <code>{自部署名}</code> 第1階層」＋「自部署が利用部署に入っている共有フォルダ」という<b>規則から生成</b>します。前回案（v3.7）で必要だった442行の手作業の対応表は不要になります。決めるのは主管部署115本だけです。</div>
+  <div class="note">実体は全社ポータルのページに置く「クイック リンク」Web パーツです。サイトは増えません。<b>Web パーツでは網羅的には見えません</b>（ハイライトされたコンテンツは200件上限）。網羅一覧は上の規則から生成した表で提供し、Web パーツは入口に使います。対象ユーザーを設定しない限り、権限の無いリンクも全員に表示されます。</div>
+ </div></div>
+
+ <div class="card"><h2>今回の変更点（v3.5 → v3.8）</h2><div class="body"><div class="kv">
+  <b><span class="badge b1">①</span></b><span><b>第1階層の命名規則を3種類に固定。</b>「{部署名}」「共有（1本だけ）」、PJ系は置かない。技術部(共通)／技術・生産共有(共通)／技術・生産・WPS共有(共通)／プロジェクト共通(共通) の使い分けを廃止します。品質技術課の重複3件（No.8〜10）はこれで解消します。</span>
+  <b><span class="badge b2">②</span></b><span><b>ライブラリごとに主管部署を1つ決め、公開範囲＝主管＋第1階層に名前のある部署。</b>設計データ上、115本のうち48本で公開範囲と中身の部署がずれていました。WPS推進室（No.4・5）と購買室（No.12）の「見えない」はここが原因です。上部メニューの「主管部署一覧」をご覧ください。</span>
+  <b><span class="badge b3">③</span></b><span><b>PJサイトを別立て。</b>生産技術室の提案（No.65）どおり。既存の札幌PJ・京都PJに鹿児島・七条・開発案件・生産技術開発を加え、権限はPJ単位、終了時に F14-01「完了PJ」へ移します。既存4サイト（札幌・京都・高級リネン・365勉強会）は現状維持（No.64）。</span>
+  <b><span class="badge b4">④</span></b><span><b>F14 を生産技術室の案で改訂。</b>工事管理文書の追加、設備系7件の F05→F14-02 移入、F14-09→「エネルギー管理/CN」、F14-11→F14-14 統合、F14-13→「申請・特許管理」、F14-14→「業務管理・報告書類」（13フォルダ）。試験報告書は品質技術課の既存サイトを継続（No.6）。</span>
+  <b><span class="badge b5">⑤</span></b><span><b>F05 を生産部のレビュー52件で整理。</b>削除7・移動6・追加3・凍結6（カミナシ／WINSが正本のもの）・要協議5。検針記録は入力帳簿と同じ1フォルダに。ISO管理室の公開範囲3件も反映。</span>
+  <b><span class="badge b6">⑥</span></b><span><b>入力層／ナレッジ層の2層構成を試験運用として受け入れ。</b>生産部の提案（No.59〜63）。商流別横軸2・生産管理1・拠点3の計6サイトを期間限定の入力層とし、承認済みデータだけを19サイト（ナレッジ層）へ移します。19サイトの外で、効果が出れば全社の標準パターンにします。</span>
+ </div>
+ <div class="note o"><b>WPS推進室の「F15を新設」（No.5）へのお答え：F15は作らない案です。</b>WPS推進室の文書は省エネ（F12）・標準化（F14）・規格（F01）という業務に属し、いずれも生産部・技術部と共有しています。F15に集めると共有が切れ、生産部・技術部側にコピーが残ります。代わりに①②で「WPS推進室」第1階層を10ライブラリに揃え、公開範囲に入れ、上のボタンから一覧できるようにします。「どこにあるか分からない」の解は、置き場所を1つにすることではなく、10か所の置き場所が見える・入れることです。</div>
+ <div class="note p"><b>生産部の「構成自体を見直したい」（No.59）へのお答え：</b>ナレッジ層（19サイト）は業務別のまま維持し、日々の入力は⑥の入力層サイトで行う2層構成を試験します。「入力・保存の工数が上がる」という指摘は、業務別分類のせいではなく、入力層がなかったことが原因だと考えています。承認フロー（作業データ→権限者承認→ナレッジへ移動）の効果を1〜3か月で検証します。</div>
+ <div class="quote">1回やってみないとわからないので、やってみましょう。<br><small>― 営業部（8/27）No.11</small></div>
+ </div></div>`;}
+
+/* ---------- 部署別ビュー（規則で生成） ---------- */
+function openDept(d){curDept=d;cur="portal";drawAll();window.scrollTo(0,0);}
+function deptBody(){
+ const D=curDept; const rows=[];
+ ALL.forEach(l=>{ if(!l.owner) return;
+  const f=FOL[l.k];
+  if(l.owner===D){ rows.push([l.n,"主管ライブラリ（全体）","主管",""]); return; }
+  if(!f) return;
+  const seen=new Set();
+  f.after.forEach(r=>{const t=r[0].split(" ＞ ")[0];
+   if(t===D&&!seen.has("d")){seen.add("d");rows.push([l.n,`${D} ＞ …`,"第1階層",`主管：${l.owner}`]);}
+   if(t==="共有"&&!seen.has("s")&&(users(l.k).includes(D)||(l.users||[]).includes(D))){seen.add("s");rows.push([l.n,"共有 ＞ …","共有","利用部署として"]);}
+  });
+ });
+ const head=`<div class="card"><h2><span class="badge b2">A</span>${D}｜自部署のフォルダの格納先（規則から生成）</h2>`;
+ if(!rows.length) return head+`<div class="body"><div class="note">この部署の抜粋データは、このデモには含めていません。規則は同じです：自部署が主管のライブラリ＋他ライブラリの「${D}」第1階層＋利用部署に入っている共有フォルダ。</div>
+  <div style="margin-top:14px"><span class="dbtn" style="display:inline-flex" onclick="curDept=null;drawAll()">← ポータルに戻る</span></div></div></div>`;
+ return head+`<div class="tool"><span>${rows.length} 件（抜粋ライブラリ内）</span><span style="margin-left:auto;cursor:pointer;color:#0f6cbd" onclick="curDept=null;drawAll()">← ポータルに戻る</span></div>
+  <table class="tb"><thead><tr><th style="width:38%">ライブラリ</th><th style="width:26%">入口</th><th style="width:12%">根拠</th><th>備考</th></tr></thead><tbody>
+  ${rows.map(r=>`<tr><td class="fo">${esc(r[0])}</td><td>${esc(r[1])}</td><td><span class="lv">${r[2]}</span></td><td style="color:#8a8886">${esc(r[3])}</td></tr>`).join("")}
+  </tbody></table>
+  <div class="body"><div class="note g">この表は <b>LIBS の owner と、各ライブラリの第1階層名だけ</b>から生成しています。フォルダを増やしても、規則を守っていればこの表は自動で追随します。</div></div></div>`;
+}
+
+/* ---------- ライブラリ ---------- */
+function libBody(){
+ if(cur==="PJ")return pjBody(); if(cur==="IN")return inBody(); if(cur==="OWN")return ownBody();
+ if(cur==="ARC")return`<div class="card"><h2>アーカイブ（部署別）</h2><div class="body"><div style="font-size:12.5px;color:#605e5c">保存義務のみ・読み取り専用。1年以上アクセスのないファイルをここへ移します。</div></div></div>`;
+ const lib=(LIBS[cur]||[]).find(l=>l.k===curLib)||(LIBS[cur]||[])[0]; const f=FOL[lib.k];
+ if(!f)return`<div class="card"><h2>${lib.n}</h2><div class="body">このライブラリはデモに含めていません。</div></div>`;
+ const rows=f[mode]; const nb=f.before.length,na=f.after.length;
+ const cnt=c=>f.before.filter(r=>r[1]===c).length;
+ const us=users(lib.k).filter(u=>u!==lib.owner);
+ return`<div class="card">
+  <h2><span class="badge b1">①</span>${lib.n}<span class="lv">${lib.lv}</span>
+   <span style="font-size:11.5px;color:#605e5c;font-weight:400">主管：<span class="own">${lib.owner}</span>　公開範囲：${mode==="before"?`<span class="warn">${lib.sg}</span>`:`${lib.owner}${us.length?" ＋ "+us.join("・"):""}`}</span>
+   <span class="tg"><div class="${mode==='before'?'on':''}" onclick="setMode('before')">v3.5（現行）${nb}</div><div class="${mode==='after'?'on':''}" onclick="setMode('after')">v3.8（今回案）${na}</div></span></h2>
+  <div class="tool"><span class="nw">＋ 新規</span><span>↑ アップロード</span><span style="margin-left:auto;color:#605e5c">
+   ${mode==='before'?`<span style="color:#a4262c">重複 ${cnt("dup")}・削除 ${cnt("del")}・移動 ${cnt("out")}・PJへ ${cnt("mv")}・凍結 ${cnt("frz")}・要協議 ${cnt("ask")}</span>`:`<span style="color:#107c10">整理後 ${na} 件</span>`}</span></div>
+  <table class="tb"><thead><tr><th style="width:70%">名前</th><th>更新日時</th><th>更新者</th></tr></thead><tbody>
+  ${rows.map(r=>{const c=r[1];const strike=["dup","del","mv","out"].includes(c);const isList=r[3]===true;
+   return`<tr><td class="${isList?"ls":"fo"} ${strike?"del":""}">${esc(r[0])}${tag(c,r[2])}</td><td style="color:#8a8886">2026/07/13</td><td style="color:#8a8886">構成案より</td></tr>`;}).join("")}
+  </tbody></table>
+  <div class="body"><div class="note">${f.msg}</div>${(f.q||[]).map(q=>`<div class="quote">${esc(q[0])}<br><small>― ${esc(q[1])}</small></div>`).join("")}</div></div>`;
+}
+
+/* ---------- PJサイト ---------- */
+function pjBody(){const lib=LIBS.PJ.find(l=>l.k===curLib)||LIBS.PJ[0];
+ return`<div class="card"><h2><span class="badge b3">③</span>${lib.n}<span class="lv">L3</span>${lib.ex?'<span class="t t-ext">既存</span>':'<span class="t t-add">新設</span>'}
+  <span style="margin-left:auto;font-size:11.5px;color:#605e5c;font-weight:400">権限：このPJの関係者のみ（PJ単位）</span></h2>
+  <div class="tool"><span class="nw">＋ 新規</span><span>↑ アップロード</span><span style="margin-left:auto;color:#605e5c">全PJ共通テンプレート ${PJTMPL.length} フォルダ</span></div>
+  <table class="tb"><thead><tr><th style="width:70%">名前</th><th>更新日時</th><th>更新者</th></tr></thead><tbody>
+  ${PJTMPL.map(n=>`<tr><td class="fo">${esc(n)}</td><td style="color:#8a8886">—</td><td style="color:#8a8886">テンプレート</td></tr>`).join("")}</tbody></table>
+  <div class="body">
+   <div class="quote">技術部としてはプロジェクトごとにあらたにサイトを立ち上げてデータ運用をするサイト群と、各プロジェクトサイトからフィードバックを送るナレッジサイト群の2部構成の運用をしないと工事案件が増えた時に管理がオーバーフローする<br><small>― 生産技術室 別紙「サイト」</small></div>
+   <div class="note o"><b>PJ期間中はここで作業し、終了時にナレッジ層へ移します。</b>移すのは「後で参照するもの」だけです。完了報告書・フィードバックは F14-01「完了PJ」、契約書は F03-02、完成図書は F13-01、設備仕様は F14-02 へ。残りは「過去PJ」としてアーカイブします。</div>
+   <div class="note g">テンプレートは、各業務ライブラリに散らばっていた「プロジェクト(共通) ＞ PJ」配下を1か所に集めたものです。F01-01・F05-04・F12-01・F14-01・F14-02・F14-11 ほか 9 ライブラリに同じPJ用フォルダが分散していました。</div>
+   <div class="note b">既存の 札幌PJ・京都PJ・高級リネン打ち合わせ・365勉強会チーム は現状維持とし、移行対象から除外して台帳に記録します（生産部 No.64）。</div>
+  </div></div>`;}
+
+/* ---------- 入力層サイト ---------- */
+function inBody(){const lib=LIBS.IN.find(l=>l.k===curLib)||LIBS.IN[0];
+ const kind=lib.k.startsWith("IN0")&&["IN01","IN02"].includes(lib.k)?"商流別横軸（No.61）":lib.k==="IN03"?"生産管理（No.62）":"拠点サイト（No.63）";
+ const who=lib.k==="IN03"?"生産管理室＋生産課長":["IN01","IN02"].includes(lib.k)?"該当所属課":"当該生産課";
+ return`<div class="card"><h2><span class="badge b6">⑥</span>${lib.n}<span class="lv">L3</span><span class="t t-ext">試験運用</span>
+  <span style="margin-left:auto;font-size:11.5px;color:#605e5c;font-weight:400">${kind}　権限：${who}</span></h2>
+  <div class="tool"><span class="nw">＋ 新規</span><span>↑ アップロード</span><span style="margin-left:auto;color:#605e5c">Teams のチャネル構成と一致させる</span></div>
+  <table class="tb"><thead><tr><th style="width:70%">名前</th><th>更新日時</th><th>更新者</th></tr></thead><tbody>
+  ${INTMPL.map(n=>`<tr><td class="fo">${esc(n)}</td><td style="color:#8a8886">—</td><td style="color:#8a8886">テンプレート</td></tr>`).join("")}</tbody></table>
+  <div class="body">
+   <div class="quote">各サイトに「会議・議事録系」「進捗確認データ」「ナレッジ承認」を設置し、承認済みデータを権限者が定期的にナレッジフォルダへ移す運用にしたい<br><small>― 生産部 No.61</small></div>
+   <div class="note p"><b>19サイト（ナレッジ層）の外に置く、期間限定の入力層です。</b>日々の入力・作業データはここで扱い、承認済みのものだけをナレッジ層の該当ライブラリ（F05-01 会議、F05-05 実績など）へ移します。生産管理サイトの経費確定データは、F05-05 経費日報へ自動転送（Power Automate）を想定します（No.62）。</div>
+   <div class="note">拠点サイトは福岡生産課・木場生産課・大阪第3生産課の3拠点でデモ運用し、Teams＋Power Platform の標準テンプレートを確立してから他拠点へ展開します（No.63）。テンプレート無しで各拠点が個別に作ると構成がばらけるためです。</div>
+   <div class="note o">試験運用の評価軸：入力工数が下がるか／承認フローが回るか／ナレッジ層に重複が出ないか。1〜3か月で判断し、効果があれば全社の2層構成の標準にします（No.59）。</div>
+  </div></div>`;}
+
+/* ---------- 主管部署一覧 ---------- */
+function ownBody(){
+ const rows=ALL.filter(l=>l.owner&&l.k!=="l2");
+ return`<div class="card"><h2><span class="badge b2">②</span>主管部署一覧（抜粋 ${rows.length} 本／全115本）</h2>
+  <div class="tool"><span>確認会で埋める表です。決めるのは<b>主管部署</b>だけ。利用部署は第1階層の名前から自動で出ます</span></div>
+  <table class="tb"><thead><tr><th>ライブラリ</th><th>主管部署（案）</th><th>利用部署（第1階層から）</th><th>現行の公開範囲</th><th>v3.8 の公開範囲</th><th>確認</th></tr></thead><tbody>
+  ${rows.map(l=>{const us=(l.users||users(l.k)).filter(u=>u!==l.owner);const bad=l.sg!==l.owner||us.some(u=>u!==l.sg);
+   return`<tr><td class="fo">${esc(l.n)}${l.was?`<br><small style="color:#8a8886">旧：${esc(l.was)}</small>`:""}</td><td class="own">${l.owner}</td><td>${us.join("・")||"—"}</td>
+   <td>${bad?`<span class="warn">${l.sg}</span>`:l.sg}</td><td>${l.owner}${us.length?" ＋ "+us.join("・"):""}</td><td><span class="chk"></span></td></tr>`;}).join("")}
+  </tbody></table>
+  <div class="body">
+   ${EXTRA_LIBS.map(l=>`<div class="note r"><b>${esc(l.n)}：</b>${esc(l.fix)}</div>`).join("")}
+   <div class="note b">赤字＝現行の公開範囲が主管または利用部署と一致していないもの。設計データ上、115本のうち48本がこの状態でした。②の規則（公開範囲＝主管＋利用部署）で機械的に解消します。</div>
+   <div class="note">この表はデモ用に、設計書v3.5から起こしたデータで作っています。設計書の公開範囲シートとの再照合が必要です。F14-13 の現行公開範囲「生産部」は設計データの誤りの可能性があります。</div>
+  </div></div>`;
+}
+
+function drawAll(){drawHub();drawSide();drawHead();el("pad").innerHTML=curDept?deptBody():(cur==="portal"?portalBody():libBody());}
+function go(id){cur=id;curDept=null;curLib=(LIBS[id]||[{k:""}])[0].k;drawAll();window.scrollTo(0,0);}
+function selLib(k){curLib=k;curDept=null;drawAll();}
+function setMode(m){mode=m;drawAll();}
+drawAll();
+</script>
+</body>
+</html>
