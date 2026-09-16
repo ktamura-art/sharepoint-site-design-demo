@@ -173,6 +173,8 @@ const STAG = { keep:'<span class="tagkeep">据え置き</span>',
                chg :'<span class="tagchg">意味が変化</span>',
                new :'<span class="tagnew">新設</span>' };
 const shortName = l => l.name.replace(l.code+" ","");
+const isPeriod  = k => !!k && k.length<=24 && k.indexOf("。")<0;      // 「10年」「改廃後10年」など
+const keepOf    = l => isPeriod(l.keep) ? l.keep : "—";
 
 const EXT   = ["xlsx","docx","pdf","pptx"];
 const DATES = ["9月12日","9月10日","9月8日","9月3日","8月28日","8月21日","8月7日","7月30日"];
@@ -267,19 +269,35 @@ function viewHome(){
     h+=`<div class="dgrid">`+ls.map(l=>`
       <div class="dbtn" data-lib="${l.code}">
         <div class="ic">${esc(l.code)}</div>
-        <div class="tx"><b>${esc(shortName(l))}</b><span>${esc(l.keep||"—")}</span></div>
+        <div class="tx"><b>${esc(shortName(l))}</b><span>${esc(keepOf(l))}</span></div>
       </div>`).join("")+`</div>`;
   }
   h+=`</div></div>`;
   if(ls.length){
+    // 列は設計書「3_列設計」の8列。ライブラリ行には、文書種別（＝小分類名）・担当部署・保存期間が入る。
+    // 任意列は、その列を使うライブラリに ○（用途欄にコードが書かれているもの／全ライブラリ共通のもの）
+    const lval=(l,c)=>{
+      const subs=subsOf(l.code);
+      if(c.col==="文書種別"){
+        const nm=subs.map(x=>x.name).filter(Boolean);
+        return nm.length? esc(nm.slice(0,3).join("／"))+(nm.length>3?`<span style="color:var(--gray)"> ほか${nm.length-3}</span>`:"") : "—";
+      }
+      if(c.col==="担当部署"){
+        const d=[...new Set(subs.flatMap(x=>x.depts||[]))];
+        return d.length? esc(d.join("・")) : "—";
+      }
+      if(c.col==="保存期間") return esc(keepOf(l));
+      const codes=(c.use.match(/F\d\d-\d\d/g)||[]);
+      return (codes.length? codes.includes(l.code) : true) ? "○" : '<span style="color:#c8c6c4">—</span>';
+    };
     h+=`<div class="card"><h2>ライブラリ一覧</h2>
-      <div class="scroll"><table class="tb" style="min-width:760px">
-        <thead><tr><th style="width:110px">コード</th><th>ライブラリ名</th>
-          <th style="width:240px">標準保存期間</th></tr></thead>
+      <div class="scroll"><table class="tb" style="min-width:1500px">
+        <thead><tr><th style="width:90px">コード</th><th style="width:220px">ライブラリ名</th>
+          ${D.cols.map(c=>`<th${c.col==="文書種別"?' style="width:300px"':""}>${esc(c.col)}</th>`).join("")}</tr></thead>
         <tbody>${ls.map(l=>`<tr data-lib="${l.code}" style="cursor:pointer">
           <td>${esc(l.code)}</td>
           <td class="fo"><b>${esc(shortName(l))}</b></td>
-          <td style="color:var(--gray)">${esc(l.keep||"—")}</td>
+          ${D.cols.map(c=>`<td style="color:${["文書種別","担当部署","保存期間"].includes(c.col)?"inherit":"var(--gray)"}">${lval(l,c)}</td>`).join("")}
         </tr>`).join("")}</tbody></table></div></div>`;
   }
   return h;
@@ -307,7 +325,7 @@ function viewLib(){
 
   return `<div class="card">
     <h2><span class="badge b-b">${esc(l.code)}</span> ${esc(shortName(l))}
-      <span style="margin-left:auto;font-weight:400;color:var(--gray);font-size:12px">${l.keep?"標準保存期間 "+esc(l.keep):""}</span></h2>
+      <span style="margin-left:auto;font-weight:400;color:var(--gray);font-size:12px">${keepOf(l)!=="—"?"標準保存期間 "+esc(keepOf(l)):""}</span></h2>
     <div class="tool">
       <span class="nw">＋ 新規</span><span>↑ アップロード</span><span>⇅ 並べ替え</span><span>⊞ ビューの編集</span>
       <div class="tg" style="margin-left:auto"><div class="on">すべてのドキュメント</div></div>
