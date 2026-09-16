@@ -319,7 +319,7 @@ function viewLib(){
   // 小分類 = 第1階層フォルダ
   const subRows = subs.map((x,i)=>`<tr>
       <td class="fo"><b>${x.name?esc(x.name):'<span style="color:var(--red)">（小分類名が rev10 で未記入）</span>'}</b>
-        ${x.bad?'<span class="tagdel" style="margin-left:6px">コードずれ</span>':''}</td>
+</td>
       <td><span class="col-chip">${esc(x.code)}</span></td>
       <td>${(x.depts&&x.depts.length)?esc(x.depts.join("・")):"—"}</td>
       <td>${esc(x.keep||"—")}</td>
@@ -350,7 +350,6 @@ function viewLib(){
   if(!body) body=`<tr><td colspan="5" style="padding:30px;text-align:center;color:#a19f9d">該当するものがありません。</td></tr>`;
 
   const blank=all.filter(x=>!x.name).length;
-  const bad  =all.filter(x=>x.bad).length;
   const noDept=all.filter(x=>x.depts&&x.depts.length).length===0;
   const prose=all.filter(x=>x.keep && (x.keep.length>24 || x.keep.indexOf("。")>=0)).length;
   const keeps=[...new Set(all.map(x=>x.keep).filter(Boolean))];
@@ -390,9 +389,6 @@ function viewLib(){
              旧コードで書かれた移行対応表・課題一覧の回答は、そのままでは使えません。</div>` : "" }
       ${ blank ? `<div class="note r"><b>小分類名が未記入の行が ${blank} 件あります。フォルダ名が作れません。</b>
              rev10 全体では ${D.stats.subBlank} 件（すべて「教育・研修」）。確認事項 No.3 に挙げています。</div>` : "" }
-      ${ bad ? `<div class="note r"><b>小分類コードが、所属する中分類コードとずれている行が ${bad} 件あります。</b>
-             フォルダを小分類コード順に並べると、他の中分類のものが混ざります。
-             rev10 全体では ${D.stats.subBad} 件です。</div>` : "" }
       ${ prose ? `<div class="note r"><b>保存期間の欄が年数になっていない行が ${prose} 件あります。</b>
              このままではフォルダに保持ラベルを割り当てられません。rev10 全体では ${D.stats.subProse} 件です。</div>` : "" }
       ${ noDept ? `<div class="note"><b>担当部署は rev10 側の記入がありません。</b>
@@ -445,7 +441,7 @@ function viewSum(){
       "小分類 <b>"+st.sub+"件</b>を、各ライブラリの第1階層フォルダとして作る（1ライブラリあたり "+st.folMin+"〜"+st.folMax+" 個）",
       "保存期間は小分類ごとに違うため、<b>フォルダ単位で既定の保持ラベル</b>を設定する",
       "現行フォルダ 360 件は、ライブラリまでは決まるが<b>どの小分類フォルダに入れるかは未決</b>",
-      "小分類名の未記入 <b>"+st.subBlank+"件</b>・コードずれ <b>"+st.subBad+"件</b>は、フォルダ名が作れないため先に要修正",
+      "小分類名の未記入 <b>"+st.subBlank+"件</b>は、フォルダ名が作れないため先に要修正",
       "サイト列 <b>"+D.cols.length+"本</b>："+D.cols.map(c=>esc(c.col)).join("／")+"　※「文書種別」列を残すかは要判断"]))}
 
     ${box("④ 保存期間 → 保持ラベル","var(--green)", `
