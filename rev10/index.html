@@ -214,7 +214,7 @@ function drawSide(){
     `<div class="sh">ドキュメント ライブラリ</div>` +
     (ls.length
       ? ls.map(l=>`<div class="li ${ST.lib===l.code?"on":""}" data-lib="${l.code}">
-           <span class="n">${esc(l.name)}</span><span class="c">${(D.fold[l.code]||[]).length||"–"}</span></div>`).join("")
+           <span class="n">${esc(l.name)}</span></div>`).join("")
       : `<div class="li" style="color:#a19f9d;cursor:default"><span class="n">（大分類サイトをご覧ください）</span></div>`) +
     `<hr>
      <div class="li ${!ST.lib?"on":""}" data-lib="">ホーム</div>
@@ -240,12 +240,11 @@ function drawHead(){
     <div class="r1">
       <div class="st" style="background:${/^F\d\d$/.test(s.id)?"var(--navy)":"#8a8886"}">${esc(s.id)}</div>
       <div>
-        <h1>${esc(s.name)} ${isNew?'<span class="badge b-n">rev10 で新設</span>':""}</h1>
+        <h1>${esc(s.name)}</h1>
         <div class="sub">
           <span>ハブサイト　サンプル株式会社 ポータル</span>
           <span>ライブラリ ${ls.length||esc(s.libs)}</span>
-          ${(s.sub&&s.sub!=="—")?`<span>フォルダ（小分類） ${esc(s.sub)}</span>`:""}
-          ${s.chg?`<span style="color:var(--orange)">${esc(s.chg)}</span>`:""}
+          ${(s.sub&&s.sub!=="—")?`<span>フォルダ ${esc(s.sub)}</span>`:""}
         </div>
       </div>
     </div>
@@ -259,53 +258,34 @@ function drawHead(){
 /* ---------------------------------------------------------- site home */
 function viewHome(){
   const s=site(ST.site), ls=libsOf(ST.site);
-  const n={keep:0,chg:0,new:0}; ls.forEach(l=>n[libState(l)]++);
-
   let h=`<div class="card">
-    <h2><span class="badge b-a">クイック リンク</span>このサイトのドキュメント ライブラリ
-      <span style="margin-left:auto;font-weight:400;color:var(--gray);font-size:12px">
-        rev10 の中分類が、そのままライブラリになります</span></h2>
+    <h2><span class="badge b-a">クイック リンク</span>ドキュメント ライブラリ</h2>
     <div class="body">`;
-
   if(!ls.length){
-    h+=`<p style="margin:0;color:var(--gray)">
-      このサイトのライブラリは大分類ごとに作ります。上のハブ ナビから F01〜F15 をご覧ください。</p>`;
+    h+=`<p style="margin:0;color:var(--gray)">このサイトにドキュメント ライブラリはありません。上のハブ ナビから各サイトをご覧ください。</p>`;
   }else{
     h+=`<div class="dgrid">`+ls.map(l=>`
       <div class="dbtn" data-lib="${l.code}">
         <div class="ic">${esc(l.code)}</div>
-        <div class="tx"><b>${esc(shortName(l))}</b><span>フォルダ（小分類） ${esc(l.sub)} 個・現行から ${(D.fold[l.code]||[]).length} 件</span></div>
+        <div class="tx"><b>${esc(shortName(l))}</b><span>フォルダ ${esc(l.sub)}・${esc(l.keep||"—")}</span></div>
       </div>`).join("")+`</div>`;
-    if(n.chg||n.new){
-      h+=`<div class="note o"><b>rev10 でこのサイトはこう変わります。</b>
-        据え置き ${n.keep} 本 ／ 同じコードのまま中分類が別物になるもの ${n.chg} 本 ／ 新設 ${n.new} 本。
-        各大分類の先頭に「規程・基準」と「教育・研修」が入り、以降が2つずつ繰り下がったためです。
-        旧コードのまま読み替えると別のライブラリに移ってしまうので、
-        上の「設計メモ：新旧コード対応」で1本ずつ突き合わせています。</div>`;
-    }
-    h+=`<div class="note g"><b>大分類＝サイト／中分類＝ライブラリ／小分類＝フォルダ、の3階層です。</b>
-      rev10 の小分類 ${D.stats.sub} 件を、各ライブラリ直下のフォルダとして作ります。
-      ライブラリを開くと、フォルダとしてどう見えるかをご確認いただけます。</div>`;
   }
   h+=`</div></div>`;
-
   if(ls.length){
-    h+=`<div class="card"><h2>このサイトのライブラリ一覧</h2>
-      <div class="scroll"><table class="tb" style="min-width:880px">
+    h+=`<div class="card"><h2>ライブラリ一覧</h2>
+      <div class="scroll"><table class="tb" style="min-width:760px">
         <thead><tr><th style="width:110px">コード</th><th>ライブラリ名</th>
-          <th style="width:130px">小分類フォルダ</th><th style="width:150px">現行から移ってくる</th><th>標準保存期間</th></tr></thead>
+          <th style="width:110px">フォルダ</th><th style="width:220px">標準保存期間</th></tr></thead>
         <tbody>${ls.map(l=>`<tr data-lib="${l.code}" style="cursor:pointer">
           <td>${esc(l.code)}</td>
           <td class="fo"><b>${esc(shortName(l))}</b></td>
-          <td>${esc(l.sub)} 個</td>
-          <td style="color:var(--gray)">${(D.fold[l.code]||[]).length} 件</td>
+          <td>${esc(l.sub)}</td>
           <td style="color:var(--gray)">${esc(l.keep||"—")}</td>
         </tr>`).join("")}</tbody></table></div></div>`;
   }
   return h;
 }
 
-/* ---------------------------------------------------------- library */
 function viewLib(){
   const l=libsOf(ST.site).find(x=>x.code===ST.lib);
   if(!l) return viewHome();
@@ -313,84 +293,27 @@ function viewLib(){
   let subs=all;
   if(ST.q) subs=subs.filter(x=>(x.name||x.code||"").includes(ST.q));
 
-  // 小分類 = 第1階層フォルダ
-  const subRows = subs.map((x,i)=>`<tr>
-      <td class="fo"><b>${x.name?esc(x.name):'<span style="color:var(--red)">（小分類名が rev10 で未記入）</span>'}</b>
-</td>
+  const rows = subs.map((x,i)=>`<tr>
+      <td class="fo"><b>${x.name?esc(x.name):'<span style="color:var(--gray)">（名称未記入）</span>'}</b></td>
       <td><span class="col-chip">${esc(x.code)}</span></td>
       <td>${(x.depts&&x.depts.length)?esc(x.depts.join("・")):"—"}</td>
       <td>${esc(x.keep||"—")}</td>
-      <td style="color:var(--gray)">${esc(DATES[i%DATES.length])}</td></tr>`).join("");
-
-  // 現行（v3.5）から入ってくるもの。行き先の小分類フォルダは未決
-  const fols=(D.fold[l.code]||[]).filter(n=>!ST.q||n.includes(ST.q));
-  const fils=(D.file[l.code]||[]).filter(n=>!ST.q||n.includes(ST.q));
-  const oldRows = fols.map((n,i)=>`<tr><td class="fo" style="padding-left:34px">${esc(n)}</td>
-      <td><span class="lv">現行フォルダ</span></td><td>—</td>
-      <td style="color:var(--red)">どの小分類フォルダに入れるか未決</td>
       <td style="color:var(--gray)">${esc(DATES[i%DATES.length])}</td></tr>`).join("")
-    + fils.map((n,i)=>`<tr><td class="fi" style="padding-left:34px">${esc(n)}</td>
-      <td><span class="lv">現行ファイル</span></td><td>—</td>
-      <td style="color:var(--red)">同上</td>
-      <td style="color:var(--gray)">${esc(DATES[(i+2)%DATES.length])}</td></tr>`).join("");
-
-  let body;
-  if(ST.view==="old"){
-    body = oldRows || `<tr><td colspan="5" style="padding:30px;text-align:center;color:#a19f9d">
-      このライブラリに移ってくる現行フォルダはありません。</td></tr>`;
-  }else{
-    const h1 = subs.length ? `<tr class="grp"><td colspan="5">rev10 の小分類 ${subs.length} 件　― この単位でフォルダを作ります</td></tr>` : "";
-    const h2 = (fols.length||fils.length)
-      ? `<tr class="grp"><td colspan="5">現行（v3.5）から移ってくるもの ${fols.length}${fils.length?"・ファイル "+fils.length:""} 件　― 上のどのフォルダに入れるかは未決</td></tr>` : "";
-    body = h1 + subRows + h2 + oldRows;
-  }
-  if(!body) body=`<tr><td colspan="5" style="padding:30px;text-align:center;color:#a19f9d">該当するものがありません。</td></tr>`;
-
-  const blank=all.filter(x=>!x.name).length;
-  const noDept=all.filter(x=>x.depts&&x.depts.length).length===0;
-  const prose=all.filter(x=>x.keep && (x.keep.length>24 || x.keep.indexOf("。")>=0)).length;
-  const keeps=[...new Set(all.map(x=>x.keep).filter(Boolean))];
+    || `<tr><td colspan="5" style="padding:30px;text-align:center;color:#a19f9d">該当するものがありません。</td></tr>`;
 
   return `<div class="card">
-    <h2><span class="badge ${libState(l)==="new"?"b-n":libState(l)==="chg"?"b-c":"b-b"}">${esc(l.code)}</span>
-      ${esc(shortName(l))} ${STAG[libState(l)]}
-      <span style="margin-left:auto;font-weight:400;color:var(--gray);font-size:12px">フォルダ ${all.length} 個</span></h2>
+    <h2><span class="badge b-b">${esc(l.code)}</span> ${esc(shortName(l))}
+      <span style="margin-left:auto;font-weight:400;color:var(--gray);font-size:12px">フォルダ ${all.length}${l.keep?"・標準保存期間 "+esc(l.keep):""}</span></h2>
     <div class="tool">
       <span class="nw">＋ 新規</span><span>↑ アップロード</span><span>⇅ 並べ替え</span><span>⊞ ビューの編集</span>
-      <div class="tg" style="margin-left:auto">
-        <div class="${ST.view!=="old"?"on":""}" data-view="list">すべてのドキュメント</div>
-        <div class="${ST.view==="old"?"on":""}" data-view="old">現行から移ってくるもの</div>
-      </div>
+      <div class="tg" style="margin-left:auto"><div class="on">すべてのドキュメント</div></div>
       <input class="search-box" id="q" placeholder="フォルダ名で絞り込む" value="${esc(ST.q)}">
     </div>
-    <div class="scroll"><table class="tb" style="min-width:960px">
-      <thead><tr><th style="width:34%">名前</th><th style="width:150px">小分類コード</th>
-        <th style="width:160px">担当部署</th><th style="width:230px">保存期間</th><th>更新日時</th></tr></thead>
-      <tbody>${body}</tbody></table></div>
-    <div class="body" style="border-top:1px solid var(--line)">
-      <div class="note g"><b>第1階層のフォルダ＝rev10 の小分類です。</b>
-        大分類＝サイト（${esc(l.code.slice(0,3))}）／中分類＝このライブラリ（${esc(l.code)}）／小分類＝フォルダ、の3階層です。
-        ${keeps.length>1
-          ? `保存期間は小分類ごとに ${keeps.length} 通りあるため、<b>フォルダ単位で既定の保持ラベルを設定します。</b>`
-          : `保存期間はこのライブラリ内で「${esc(keeps[0]||"—")}」に統一されています。`}</div>
-      ${ (D.fold[l.code]||[]).length
-        ? `<div class="note o"><b>現行フォルダ ${ (D.fold[l.code]||[]).length } 件の行き先が決まっていません。</b>
-             新旧コード対応でこのライブラリまでは決まりますが、<b>どの小分類フォルダに入れるかは対応表にありません。</b>
-             ${ l.old && l.old!=="—" ? `もとは v3.5 の <b>${esc(l.old.split(" ")[0])}</b> にありました。` : "" }</div>`
-        : (libState(l)==="new"
-           ? `<div class="note p"><b>rev10 で新設されたライブラリのため、現行のフォルダはありません。</b>
-                どの文書をここへ移すかは確認会で決めます。</div>` : "") }
-      ${ (libState(l)==="chg" && l.old && l.old!=="—")
-        ? `<div class="note o"><b>このコードは v3.5 と意味が変わります。</b>
-             v3.5 の <b>${esc(l.code)}</b> は「${esc(l.old.replace(l.code+" ",""))}」でした。
-             旧コードで書かれた移行対応表・課題一覧の回答は、そのままでは使えません。</div>` : "" }
-      ${ blank ? `<div class="note r"><b>小分類名が未記入の行が ${blank} 件あります。フォルダ名が作れません。</b>
-             rev10 全体では ${D.stats.subBlank} 件（すべて「教育・研修」）。確認事項 No.3 に挙げています。</div>` : "" }
-      ${ prose ? `<div class="note r"><b>保存期間の欄が年数になっていない行が ${prose} 件あります。</b>
-             このままではフォルダに保持ラベルを割り当てられません。rev10 全体では ${D.stats.subProse} 件です。</div>` : "" }
-      ${ noDept ? `<div class="note"><b>担当部署は rev10 側の記入がありません。</b>
-             公開範囲は、これまでどおり主管部署の設定で決める必要があります。確認事項 No.15 に挙げています。</div>` : "" }
-    </div></div>`;
+    <div class="scroll"><table class="tb" style="min-width:900px">
+      <thead><tr><th style="width:36%">名前</th><th style="width:140px">小分類コード</th>
+        <th style="width:170px">担当部署</th><th style="width:220px">保存期間</th><th>更新日時</th></tr></thead>
+      <tbody>${rows}</tbody></table></div>
+  </div>`;
 }
 
 /* ---------------------------------------------------------- 設計メモ */
