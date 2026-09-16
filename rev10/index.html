@@ -318,7 +318,7 @@ function viewLib(){
     return '<span style="color:#c8c6c4">—</span>';
   };
   const rows = subs.map((x,i)=>`<tr>
-      <td class="fo"><b>${x.name?esc(x.name):'<span style="color:var(--gray)">（名称未記入）</span>'}</b></td>
+      <td class="fo"><b>${esc(x.code)} ${x.name?esc(x.name):'<span style="color:var(--gray)">（名称未記入）</span>'}</b></td>
       ${D.cols.map(c=>`<td>${val(x,c)}</td>`).join("")}
       <td style="color:var(--gray)">${esc(DATES[i%DATES.length])}</td></tr>`).join("")
     || `<tr><td colspan="${D.cols.length+2}" style="padding:30px;text-align:center;color:#a19f9d">該当するものがありません。</td></tr>`;
