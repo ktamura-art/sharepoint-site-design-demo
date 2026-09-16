@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>SharePoint 構造デモ v4.0（共通文書管理体系 rev10 反映）</title>
+<style>
+:root{
+  --navy:#0b3d91; --deep:#072a66; --blue:#0f6cbd; --ink:#1f2328; --gray:#616161;
+  --line:#e1e4e8; --line2:#f2f4f7; --bg:#f6f8fb; --white:#fff;
+  --ok:#107c10; --warn:#c55a11; --ng:#c50f1f; --new:#7719aa;
+  --r:8px; --sh:0 1px 2px rgba(0,0,0,.05),0 1px 3px rgba(0,0,0,.04);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;
+  background:var(--bg);color:var(--ink);font-size:14px;line-height:1.7;-webkit-font-smoothing:antialiased}
+
+header{background:var(--navy);color:#fff;padding:20px 26px 0}
+.hd{max-width:1380px;margin:0 auto;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:flex-start}
+.hd h1{font-size:20px;margin:0;font-weight:700}
+.hd p{margin:4px 0 0;font-size:12.5px;color:#b9c9e8}
+.hd .meta{font-size:11.5px;color:#b9c9e8;text-align:right;line-height:1.85;white-space:nowrap}
+nav{max-width:1380px;margin:16px auto 0;display:flex;gap:2px;flex-wrap:wrap}
+nav button{background:none;border:0;color:#b9c9e8;font:inherit;font-size:13px;font-weight:600;
+  padding:10px 16px;cursor:pointer;border-bottom:2.5px solid transparent;border-radius:6px 6px 0 0}
+nav button:hover{color:#fff;background:rgba(255,255,255,.07)}
+nav button.on{color:#fff;border-bottom-color:#7fb3ff}
+
+main{max-width:1380px;margin:0 auto;padding:22px 26px 70px}
+.panel{display:none}.panel.on{display:block}
+h2{font-size:16.5px;margin:0 0 4px}
+.lede{color:var(--gray);font-size:13px;margin:0 0 16px}
+.sec{margin-top:30px}
+
+.alert{background:#fff8e6;border:1px solid #f2d492;border-left:4px solid var(--warn);
+  border-radius:var(--r);padding:12px 16px;margin-bottom:18px}
+.alert b{color:#8a4b00}
+.alert p{margin:5px 0 0;font-size:12.5px;color:#5c3a10}
+
+.card{background:var(--white);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden}
+.scroll{overflow-x:auto}
+table.fixed{table-layout:fixed}
+table.fixed td{overflow-wrap:anywhere}
+.scroll table{min-width:900px}
+.grid{display:grid;gap:12px}
+.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
+.g5{grid-template-columns:repeat(5,1fr)}
+@media(max-width:1080px){.g4,.g5{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:720px){.g3,.g4,.g5{grid-template-columns:1fr}}
+
+.stat{background:var(--white);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;box-shadow:var(--sh)}
+.stat .v{font-size:27px;font-weight:700;color:var(--navy);line-height:1.15}
+.stat .u{font-size:12.5px;font-weight:600;color:var(--gray);margin-left:3px}
+.stat .k{font-size:11.5px;color:var(--gray);margin-top:4px}
+
+.bar{background:var(--white);border:1px solid var(--line);border-radius:var(--r);padding:11px 14px;
+  margin-bottom:16px;display:flex;gap:16px;flex-wrap:wrap;align-items:center;box-shadow:var(--sh)}
+.bar-lb{font-size:11.5px;color:var(--gray);font-weight:700;letter-spacing:.04em}
+.bar-g{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:4px 12px;font:inherit;
+  font-size:12px;cursor:pointer;color:var(--ink)}
+.chip:hover{background:var(--line2)}
+.chip.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.chip.on[data-c]{background:var(--c);border-color:var(--c)}
+input[type=search]{border:1px solid var(--line);border-radius:6px;padding:6px 11px;font:inherit;font-size:13px;min-width:230px}
+input[type=search]:focus{outline:2px solid #cfe0fb;border-color:var(--blue)}
+
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:var(--line2);color:var(--gray);font-size:11px;font-weight:700;letter-spacing:.04em;
+  text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:1}
+td{padding:8px 10px;border-bottom:1px solid var(--line2);vertical-align:top}
+tr:last-child td{border-bottom:0}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;white-space:nowrap}
+.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--gray)}
+.dim{color:var(--gray);font-size:12.5px}
+
+.b{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap;border:1px solid}
+.b-ok{color:var(--ok);border-color:#b6ddb6;background:#f1f9f1}
+.b-chg{color:var(--warn);border-color:#f2d492;background:#fff8e6}
+.b-ng{color:var(--ng);border-color:#f3bcc0;background:#fdf3f4}
+.b-new{color:var(--new);border-color:#dcc4ee;background:#f9f3fd}
+.b-site{color:#fff;background:var(--blue);border-color:var(--blue)}
+.b-hub{color:#fff;background:var(--navy);border-color:var(--navy)}
+.b-sp{color:var(--gray);background:var(--line2);border-color:var(--line)}
+
+.site{cursor:pointer;user-select:none}
+.site-h{display:flex;gap:12px;align-items:flex-start;padding:13px 16px;background:#fff}
+.site-h:hover{background:#fbfcfe}
+.site-id{flex:none;min-width:52px;height:38px;border-radius:7px;display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:13px;color:#fff;background:var(--blue)}
+.site-b{flex:1;min-width:0}
+.site-n{font-size:14.5px;font-weight:700;color:var(--navy);margin:0}
+.site-d{font-size:12px;color:var(--gray);margin:2px 0 0}
+.site-r{flex:none;display:flex;gap:11px;align-items:center;color:var(--gray);font-size:12px}
+.caret{font-size:11px;color:#9aa4b2;transition:transform .18s}
+.site.open .caret{transform:rotate(90deg)}
+.site-body{display:none;border-top:1px solid var(--line);background:#fbfcfe;overflow-x:auto}
+.site-body table{min-width:940px}
+.site.open .site-body{display:block}
+
+.arrow{color:#9aa4b2;padding:0 6px}
+.empty{padding:34px;text-align:center;color:#9aa4b2;font-size:13px}
+.note{background:#eef4fd;border:1px solid #cfe0fb;border-radius:var(--r);padding:11px 14px;font-size:12.5px;color:#0b3d91;margin-top:14px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--gray);margin-top:10px}
+footer{max-width:1380px;margin:0 auto;padding:0 26px 40px;color:#9aa4b2;font-size:11.5px;line-height:1.9}
+@media print{
+  header{background:#fff;color:#000}nav,.bar{display:none!important}
+  .panel{display:block!important;page-break-before:always}.panel:first-of-type{page-break-before:auto}
+  .site-body{display:block!important}body{background:#fff;font-size:11px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hd">
+    <div>
+      <h1>SharePoint 構造デモ v4.0（共通文書管理体系 rev10 反映）</h1>
+      <p>大分類＝サイト／中分類＝ドキュメント ライブラリ／小分類＝「文書種別」列</p>
+    </div>
+    <div class="meta" id="hd-meta"></div>
+  </div>
+  <nav>
+    <button class="on" data-p="site">サイトとライブラリ</button>
+    <button data-p="map">新旧コード対応</button>
+    <button data-p="col">文書種別と列設計</button>
+    <button data-p="ask">確認事項</button>
+  </nav>
+</header>
+
+<main>
+
+<div class="alert">
+  <b>このデモの位置づけ</b>
+  <p>
+    各部門レビュー（71件）を反映する<b>前</b>の構造（v3.5 系）に、共通文書管理体系 <b>rev10</b>（小分類マスタ）だけを反映したものです。
+    v3.8 で反映したレビュー内容（第1階層ルール・主管部署・PJサイト・入力層サイト）は、このデモには入っていません。
+    レビューの回答は旧コードで書かれており、rev10 でコードの意味が変わるため、いったん切り離して rev10 単体の姿を確認するための版です。
+  </p>
+</div>
+
+<!-- ======================= サイトとライブラリ ======================= -->
+<section class="panel on" id="p-site">
+  <h2>サイトとライブラリ</h2>
+  <p class="lede" id="site-lede"></p>
+
+  <div class="grid g5" id="site-stats" style="margin-bottom:18px"></div>
+
+  <div class="bar">
+    <div class="bar-g"><span class="bar-lb">状態</span><div id="f-state"></div></div>
+    <div class="bar-g"><input type="search" id="f-q" placeholder="ライブラリ名・コードで検索（例：契約、F09、教育）"></div>
+    <div style="margin-left:auto;display:flex;gap:8px">
+      <button class="chip" id="b-open">すべて開く</button>
+      <button class="chip" id="b-close">すべて閉じる</button>
+      <button class="chip" onclick="window.print()">印刷</button>
+    </div>
+  </div>
+
+  <div id="sites"></div>
+  <div class="legend">
+    <span><span class="b b-ok">据え置き</span> v3.5 と同じコード・同じ中身</span>
+    <span><span class="b b-chg">意味が変化</span> 同じコードだが中分類が別物に変わる</span>
+    <span><span class="b b-new">新設</span> rev10 で新しく増えたライブラリ</span>
+  </div>
+</section>
+
+<!-- ======================= 新旧コード対応 ======================= -->
+<section class="panel" id="p-map">
+  <h2>新旧コード対応</h2>
+  <p class="lede" id="map-lede"></p>
+
+  <div class="grid g4" id="map-stats" style="margin-bottom:18px"></div>
+
+  <div class="bar">
+    <div class="bar-g"><span class="bar-lb">作業区分</span><div id="f-act"></div></div>
+    <div class="bar-g"><input type="search" id="f-mq" placeholder="旧コード・旧名称で検索（例：F01-06、契約、クレーム）"></div>
+  </div>
+
+  <div class="card" style="max-height:640px;overflow:auto"><table class="fixed" style="min-width:1010px">
+    <colgroup>
+      <col style="width:104px"><col style="width:290px"><col style="width:76px"><col style="width:34px">
+      <col style="width:104px"><col style="width:290px"><col style="width:112px">
+    </colgroup>
+    <thead><tr>
+      <th>v3.5 コード</th><th>v3.5 ライブラリ名</th>
+      <th class="num">フォルダ</th><th></th>
+      <th>rev10 コード</th><th>rev10 での名称</th>
+      <th>作業区分</th>
+    </tr></thead>
+    <tbody id="maprows"></tbody>
+  </table></div>
+  <div class="note" id="map-note"></div>
+</section>
+
+<!-- ======================= 文書種別と列設計 ======================= -->
+<section class="panel" id="p-col">
+  <h2>文書種別と列設計</h2>
+  <p class="lede" id="col-lede"></p>
+
+  <div class="sec" style="margin-top:0">
+    <div class="card scroll"><table>
+      <thead><tr><th style="width:130px">列名</th><th style="width:110px">種類</th><th style="width:160px">値の出どころ</th>
+        <th style="width:52px">必須</th><th>用途</th><th style="width:210px">付与の方法</th></tr></thead>
+      <tbody id="colrows"></tbody>
+    </table></div>
+  </div>
+
+  <div class="sec">
+    <h2>保存期間 → 保持ラベル</h2>
+    <p class="lede">rev10 の標準保存期間を、そのまま保持ラベルに対応させます。ラベルは「文書種別」列の値に紐づけます。</p>
+    <div class="card scroll"><table>
+      <thead><tr><th style="width:300px">標準保存期間</th><th style="width:90px" class="num">小分類数</th>
+        <th style="width:260px">保持ラベル案</th><th style="width:110px">起算日</th><th></th></tr></thead>
+      <tbody id="keeprows"></tbody>
+    </table></div>
+    <div class="note" id="keep-note"></div>
+  </div>
+
+  <div class="sec">
+    <h2>小分類をフォルダにしない理由</h2>
+    <div class="grid g3">
+      <div class="card" style="padding:14px 16px">
+        <b style="color:var(--ng)">フォルダにすると</b>
+        <p class="dim" style="margin:6px 0 0">1ライブラリあたり平均3.9・最大20の階層が増え、探す手数が増えます。同じ「規定」でもライブラリごとに別フォルダになります。</p>
+      </div>
+      <div class="card" style="padding:14px 16px">
+        <b style="color:var(--ok)">列にすると</b>
+        <p class="dim" style="margin:6px 0 0">同じ文書種別をライブラリ横断で絞り込めます。保存期間の保持ラベルも文書種別に紐づけられます。</p>
+      </div>
+      <div class="card" style="padding:14px 16px">
+        <b style="color:var(--warn)">移管時の注意</b>
+        <p class="dim" style="margin:6px 0 0">列の値は移管時には付きません。フォルダ構造のまま移し、フォルダ単位の既定値で移管後に一括付与します。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 確認事項 ======================= -->
+<section class="panel" id="p-ask">
+  <h2>確認事項</h2>
+  <p class="lede" id="ask-lede"></p>
+  <div class="bar">
+    <div class="bar-g"><span class="bar-lb">区分</span><div id="f-cat"></div></div>
+  </div>
+  <div id="askrows"></div>
+</section>
+
+</main>
+
+<footer>
+  本デモは構造の検討用です。各部門レビュー（71件）は反映していません。<br>
+  データは設計書 v4.0（rev10 反映）から機械的に生成しています。件数・名称は同設計書と一致します。
+</footer>
+
+<script>
+const D = {"sites": [{"no": "—", "id": "portal", "name": "全社ポータル（ハブ）", "kind": "ハブ", "libs": "1", "sub": "—", "chg": "変更なし"}, {"no": "—", "id": "SC", "name": "全社共有（部署間）", "kind": "業務", "libs": "14", "sub": "—", "chg": "大分類ごとの L2 ライブラリ。F15 分を追加"}, {"no": "1", "id": "F01", "name": "F01 経営・組織運営", "kind": "業務", "libs": "6", "sub": "19", "chg": "名称変更：経営・ガバナンス → 経営・組織運営"}, {"no": "2", "id": "F02", "name": "F02 営業・顧客管理", "kind": "業務", "libs": "6", "sub": "21", "chg": ""}, {"no": "3", "id": "F03", "name": "F03 法務管理", "kind": "業務", "libs": "7", "sub": "26", "chg": "名称変更：契約・法務管理 → 法務管理（契約は F15 へ）"}, {"no": "4", "id": "F04", "name": "F04 調達・購買管理", "kind": "業務", "libs": "7", "sub": "19", "chg": ""}, {"no": "5", "id": "F05", "name": "F05 生産・洗濯・仕上げ管理", "kind": "業務", "libs": "7", "sub": "32", "chg": ""}, {"no": "6", "id": "F06", "name": "F06 品質保証・品質管理", "kind": "業務", "libs": "5", "sub": "16", "chg": ""}, {"no": "7", "id": "F07", "name": "F07 物流・配送管理", "kind": "業務", "libs": "7", "sub": "23", "chg": ""}, {"no": "8", "id": "F08", "name": "F08 リネン・資材管理", "kind": "業務", "libs": "8", "sub": "26", "chg": ""}, {"no": "9", "id": "F09", "name": "F09 人事・労務管理", "kind": "業務", "libs": "12", "sub": "74", "chg": ""}, {"no": "10", "id": "F10", "name": "F10 財務・会計管理", "kind": "業務", "libs": "14", "sub": "63", "chg": ""}, {"no": "11", "id": "F11", "name": "F11 情報システム管理", "kind": "業務", "libs": "9", "sub": "20", "chg": ""}, {"no": "12", "id": "F12", "name": "F12 環境・安全衛生", "kind": "業務", "libs": "6", "sub": "19", "chg": ""}, {"no": "13", "id": "F13", "name": "F13 総務・施設管理", "kind": "業務", "libs": "9", "sub": "39", "chg": ""}, {"no": "14", "id": "F14", "name": "F14 研究開発・技術・知財管理", "kind": "業務", "libs": "9", "sub": "42", "chg": ""}, {"no": "15", "id": "F15", "name": "F15 契約・商取引管理", "kind": "業務", "libs": "6", "sub": "23", "chg": "★新設。契約・商取引をここへ集約"}, {"no": "—", "id": "L5", "name": "L5_極秘（個別）", "kind": "特別用途", "libs": "1", "sub": "—", "chg": "変更なし"}, {"no": "—", "id": "検", "name": "検証サイト", "kind": "特別用途", "libs": "1", "sub": "—", "chg": "変更なし"}, {"no": "—", "id": "AR", "name": "アーカイブ", "kind": "特別用途", "libs": "1", "sub": "—", "chg": "変更なし"}], "libs": [{"site": "F01", "code": "F01-01", "name": "F01-01 規程・基準", "sub": "2", "keep": "改廃後10年", "law": "", "state": "★意味が変化", "old": "F01-01 経営計画・方針策定"}, {"site": "F01", "code": "F01-02", "name": "F01-02 教育・研修", "sub": "1", "keep": "", "law": "", "state": "★意味が変化", "old": "F01-02 取締役会・株主総会"}, {"site": "F01", "code": "F01-03", "name": "F01-03 経営計画・方針策定", "sub": "4", "keep": "10年", "law": "会社法（事業報告の基礎資料）", "state": "★意味が変化", "old": "F01-03 内部統制・監査"}, {"site": "F01", "code": "F01-04", "name": "F01-04 取締役会・株主総会", "sub": "3", "keep": "10年以上（可能なら恒久）", "law": "会社法（取締役会・株主総会議事録の本店10年備置き）", "state": "★意味が変化", "old": "F01-04 法令遵守・リスク管理"}, {"site": "F01", "code": "F01-05", "name": "F01-05 内部統制・監査", "sub": "4", "keep": "10年", "law": "会社法、金融商品取引法（J-SOX）、税法（法人税法・消費税法、電子帳簿保存法）", "state": "★意味が変化", "old": "F01-05 広報・社外対応"}, {"site": "F01", "code": "F01-06", "name": "F01-06 会議", "sub": "5", "keep": "", "law": "", "state": "★意味が変化", "old": "F01-06 規格、基準"}, {"site": "F02", "code": "F02-01", "name": "F02-01 規程・基準・マニュアル", "sub": "4", "keep": "改廃後10年", "law": "民法、個人情報保護法", "state": "★意味が変化", "old": "F02-01 営業計画・マーケティング"}, {"site": "F02", "code": "F02-02", "name": "F02-02 教育・研修", "sub": "1", "keep": "", "law": "", "state": "★意味が変化", "old": "F02-02 顧客契約・受注管理"}, {"site": "F02", "code": "F02-03", "name": "F02-03 営業計画・マーケティング", "sub": "5", "keep": "5年", "law": "会社法（経営管理）、個人情報保護法（顧客データ）", "state": "★意味が変化", "old": "F02-03 顧客対応・クレーム処理"}, {"site": "F02", "code": "F02-04", "name": "F02-04 受注管理", "sub": "4", "keep": "10年", "law": "法人税法・消費税法・電子帳簿保存法（請求書・売上帳など国税関係帳簿書類）", "state": "★意味が変化", "old": "F02-04 売上管理・請求"}, {"site": "F02", "code": "F02-05", "name": "F02-05 問い合わせ・クレーム処理", "sub": "4", "keep": "10年", "law": "民法、PL法、消費者契約法", "state": "★意味が変化", "old": "F02-05 営業報告・分析"}, {"site": "F02", "code": "F02-06", "name": "F02-06 顧客支給・貸与資料管理", "sub": "3", "keep": "取引終了後10年", "law": "民法、個人情報保護法", "state": "据え置き", "old": "F02-06 顧客支給・貸与資料管理"}, {"site": "F03", "code": "F03-01", "name": "F03-01 規程・基準・マニュアル", "sub": "3", "keep": "改廃後10年", "law": "", "state": "★意味が変化", "old": "F03-01 契約書作成・審査"}, {"site": "F03", "code": "F03-02", "name": "F03-02 教育・研修", "sub": "1", "keep": "", "law": "", "state": "★意味が変化", "old": "F03-02 契約管理・保管"}, {"site": "F03", "code": "F03-03", "name": "F03-03 法規制対応・許認可取得", "sub": "2", "keep": "許認可有効期間＋5年（目安10年）", "law": "各種業法（クリーニング業、消防法、環境法 等）", "state": "据え置き", "old": "F03-03 法規制対応・許認可取得"}, {"site": "F03", "code": "F03-04", "name": "F03-04 法令遵守・リスク管理", "sub": "7", "keep": "10年（公益通報・許認可は長め）", "law": "商法・会社法、個人情報保護法、労働基準法、クリーニング業法 等", "state": "★意味が変化", "old": "F03-04 紛争・訴訟対応"}, {"site": "F03", "code": "F03-05", "name": "F03-05 環境規制遵守・環境管理", "sub": "8", "keep": "5年", "law": "環境基本法、各種環境関連法", "state": "★意味が変化", "old": "F03-05 社内法務・規程管理"}, {"site": "F03", "code": "F03-06", "name": "F03-06 紛争・訴訟対応", "sub": "2", "keep": "紛争終結後10年", "law": "民法、民事訴訟法、労働審判法、PL法 等", "state": "★意味が変化", "old": "F03-06 法令・会計基準 参考資料（外部）"}, {"site": "F03", "code": "F03-07", "name": "F03-07 社内法務・規程管理", "sub": "3", "keep": "規程：改廃後10年", "law": "会社法、個人情報保護法 等", "state": "★新設", "old": "—"}, {"site": "F04", "code": "F04-01", "name": "F04-01 規程・基準・マニュアル", "sub": "3", "keep": "改廃後10年", "law": "", "state": "★意味が変化", "old": "F04-01 購買計画・予算管理"}, {"site": "F04", "code": "F04-02", "name": "F04-02 教育・研修", "sub": "1", "keep": "", "law": "", "state": "★意味が変化", "old": "F04-02 サプライヤ選定・評価"}, {"site": "F04", "code": "F04-03", "name": "F04-03 購買計画・予算管理", "sub": "2", "keep": "7年", "law": "会社法（経営管理）、税法", "state": "★意味が変化", "old": "F04-03 発注・検収管理"}, {"site": "F04", "code": "F04-04", "name": "F04-04 サプライヤ選定・評価", "sub": "5", "keep": "10年", "law": "下請法、独禁法、ISO9001 等", "state": "★意味が変化", "old": "F04-04 購買契約・価格交渉"}, {"site": "F04", "code": "F04-05", "name": "F04-05 購買契約・価格交渉", "sub": "1", "keep": "契約終了後10年", "law": "民法、商法・会社法、法人税法", "state": "★意味が変化", "old": "F04-05 請求書処理・支払管理"}, {"site": "F04", "code": "F04-06", "name": "F04-06 購買データ分析・統計資料", "sub": "4", "keep": "5年", "law": "－", "state": "据え置き", "old": "F04-06 購買データ分析・統計資料"}, {"site": "F04", "code": "F04-07", "name": "F04-07 購買マスタ管理", "sub": "3", "keep": "10年", "law": "法人税法（取引関係書類）", "state": "据え置き", "old": "F04-07 購買マスタ管理"}, {"site": "F05", "code": "F05-01", "name": "F05-01 規程・基準・マニュアル", "sub": "3", "keep": "改廃後10年", "law": "", "state": "★意味が変化", "old": "F05-01 生産計画・工程管理"}, {"site": "F05", "code": "F05-02", "name": "F05-02 教育・研修", "sub": "1", "keep": "", "law": "", "state": "★意味が変化", "old": "F05-02 洗濯作業管理"}, {"site": "F05", "code": "F05-03", "name": "F05-03 生産計画・工程管理", "sub": "9", "keep": "5年", "law": "会社法（生産計画）、品質関連顧客要求", "state": "★意味が変化", "old": "F05-03 仕上げ作業管理"}, {"site": "F05", "code": "F05-04", "name": "F05-04 洗濯作業管理", "sub": "8", "keep": "10年", "law": "クリーニング業法、労働安全衛生法、PL法 等", "state": "★意味が変化", "old": "F05-04 設備点検・メンテナンス"}, {"site": "F05", "code": "F05-05", "name": "F05-05 仕上げ作業管理", "sub": "3", "keep": "5年", "law": "クリーニング業法、労働安全衛生法、PL法 等", "state": "★意味が変化", "old": "F05-05 生産実績・歩留まり管理"}, {"site": "F05", "code": "F05-06", "name": "F05-06 生産設備点検・メンテナンス", "sub": "5", "keep": "5〜10年（設備更新は資産に準拠）", "law": "労働安全衛生法、消防法 等", "state": "★新設", "old": "—"}, {"site": "F05", "code": "F05-07", "name": "F05-07 生産実績・歩留まり管理", "sub": "3", "keep": "10年", "law": "PL法、品質保証契約", "state": "★新設", "old": "—"}, {"site": "F06", "code": "F06-01", "name": "F06-01 規程・基準・マニュアル", "sub": "5", "keep": "改廃後10年", "law": "", "state": "★意味が変化", "old": "F06-01 品質方針・マニュアル"}, {"site": "F06", "code": "F06-02", "name": "F06-02 教育・研修", "sub": "1", "keep": "", "law": "", "state": "★意味が変化", "old": "F06-02 受入・出荷検品"}, {"site": "F06", "code": "F06-03", "name": "F06-03 受入・出荷検品", "sub": "3", "keep": "10年", "law": "PL法、取引先品質要求", "state": "★意味が変化", "old": "F06-03 不良・クレーム対応"}, {"site": "F06", "code": "F06-04", "name": "F06-04 品質監査・認証取得", "sub": "5", "keep": "10年", "law": "ISO9001、ISO22000、RAL規格、衛生基準認定制度　等", "state": "据え置き", "old": "F06-04 品質監査・認証取得"}, {"site": "F06", "code": "F06-05", "name": "F06-05 是正措置・改善活動", "sub": "2", "keep": "10年", "law": "ISO9001、ISO22000、RAL規格　等", "state": "据え置き", "old": "F06-05 是正措置・改善活動"}, {"site": "F07", "code": "F07-01", "name": "F07-01 規程・基準・マニュアル", "sub": "3", "keep": "改廃後10年", "law": "", "state": "★意味が変化", "old": "F07-01 配送計画・ルート設定"}, {"site": "F07", "code": "F07-02", "name": "F07-02 教育・研修", "sub": "1", "keep": "", "law": "", "state": "★意味が変化", "old": "F07-02 出荷準備・配達実行"}, {"site": "F07", "code": "F07-03", "name": "F07-03 配送計画・ルート設定", "sub": "4", "keep": "5年", "law": "道路運送法、労働基準法（運転者の労務管理）", "state": "★意味が変化", "old": "F07-03 車両・運行管理"}, {"site": "F07", "code": "F07-04", "name": "F07-04 出荷準備・配達実行", "sub": "5", "keep": "5年", "law": "法人税法（出荷伝票は取引書類に該当しうる）", "state": "★意味が変化", "old": "F07-04 配送実績・受領確認"}, {"site": "F07", "code": "F07-05", "name": "F07-05 車両・運行管理", "sub": "5", "keep": "5年（事故・個人情報は長め）", "law": "道路運送法、道路交通法", "state": "★意味が変化", "old": "F07-05 倉庫管理・在庫補充"}, {"site": "F07", "code": "F07-06", "name": "F07-06 配送実績・受領確認", "sub": "3", "keep": "5年", "law": "法人税法、PL法", "state": "★新設", "old": "—"}, {"site": "F07", "code": "F07-07", "name": "F07-07 倉庫管理・在庫補充", "sub": "2", "keep": "7年", "law": "税法（棚卸関連）、PL法", "state": "★新設", "old": "—"}, {"site": "F08", "code": "F08-01", "name": "F08-01 規程・基準・マニュアル", "sub": "3", "keep": "改廃後10年", "law": "", "state": "★意味が変化", "old": "F08-01 在庫計画・棚卸"}, {"site": "F08", "code": "F08-02", "name": "F08-02 教育・研修", "sub": "1", "keep": "", "law": "", "state": "★意味が変化", "old": "F08-02 入庫・保管管理"}, {"site": "F08", "code": "F08-03", "name": "F08-03 在庫計画・棚卸", "sub": "2", "keep": "7〜10年（推奨10年）", "law": "法人税法（棚卸表は国税関係書類）", "state": "★意味が変化", "old": "F08-03 リネン貸出・回収管理"}, {"site": "F08", "code": "F08-04", "name": "F08-04 入庫・保管管理", "sub": "5", "keep": "5〜7年", "law": "税法、PL法", "state": "★意味が変化", "old": "F08-04 消耗資材管理・発注"}, {"site": "F08", "code": "F08-05", "name": "F08-05 リネン貸出・回収管理", "sub": "3", "keep": "5〜10年（顧客重要案件）", "law": "契約法、PL法", "state": "★意味が変化", "old": "F08-05 老朽品廃棄・更新"}, {"site": "F08", "code": "F08-06", "name": "F08-06 消耗資材管理・発注", "sub": "3", "keep": "7年", "law": "税法（発注書・検収書は国税関係書類）", "state": "★意味が変化", "old": "F08-06 リネン管理"}, {"site": "F08", "code": "F08-07", "name": "F08-07 老朽品廃棄・更新", "sub": "4", "keep": "5〜10年", "law": "廃棄物処理法（産廃マニフェスト5年保存）", "state": "★新設", "old": "—"}, {"site": "F08", "code": "F08-08", "name": "F08-08 リネン管理", "sub": "5", "keep": "5〜10年", "law": "契約法、PL法", "state": "★新設", "old": "—"}, {"site": "F09", "code": "F09-01", "name": "F09-01 規程・基準・就業規則", "sub": "3", "keep": "改廃後10年", "law": "", "state": "★意味が変化", "old": "F09-01 採用・人員計画"}, {"site": "F09", "code": "F09-02", "name": "F09-02 教育・研修", "sub": "9", "keep": "3〜5年（安全衛生関連は5年）", "law": "労安衛法（安全衛生教育は別途 F12-03）、一般研修は明文なし", "state": "★意味が変化", "old": "F09-02 人事記録・異動管理"}, {"site": "F09", "code": "F09-03", "name": "F09-03 採用・人員計画", "sub": "10", "keep": "3年（採用）/受入関連は5年", "law": "労働基準法、男女雇用機会均等法、労働派遣法、障害者雇用促進法　等", "state": "★意味が変化", "old": "F09-03 勤怠・給与計算"}, {"site": "F09", "code": "F09-04", "name": "F09-04 人事記録・異動管理", "sub": "17", "keep": "退職後5年", "law": "労基法109条（重要な書類）、個人情報保護法、育児・介護休業法", "state": "★意味が変化", "old": "F09-04 社会保険・福利厚生"}, {"site": "F09", "code": "F09-05", "name": "F09-05 勤怠・給与計算", "sub": "9", "keep": "7年", "law": "労基法109条（勤怠・賃金台帳5年）、所得税法（源泉徴収関係は7年）", "state": "★意味が変化", "old": "F09-05 教育・研修"}, {"site": "F09", "code": "F09-06", "name": "F09-06 社会保険・福利厚生", "sub": "15", "keep": "5年", "law": "雇用保険法、健康保険法、厚生年金保険法 等", "state": "★意味が変化", "old": "F09-06 労働保険"}, {"site": "F09", "code": "F09-07", "name": "F09-07 労働保険", "sub": "4", "keep": "3~5年", "law": "労働基準法", "state": "★意味が変化", "old": "F09-07 海外人材"}, {"site": "F09", "code": "F09-08", "name": "F09-08 海外人材", "sub": "1", "keep": "5年", "law": "労働基準法、技能実習法、入管法", "state": "★意味が変化", "old": "F09-08 行政定期調査"}, {"site": "F09", "code": "F09-09", "name": "F09-09 行政定期調査", "sub": "1", "keep": "5年", "law": "労働基準法、統計法", "state": "★意味が変化", "old": "F09-09 助成金"}, {"site": "F09", "code": "F09-10", "name": "F09-10 就業規則違反", "sub": "1", "keep": "10年（紛争は長期化する可能性あり）", "law": "労働基準法、労働契約法", "state": "据え置き", "old": "F09-10 就業規則違反"}, {"site": "F09", "code": "F09-11", "name": "F09-11 社内トラブル", "sub": "3", "keep": "10年（紛争は長期化する可能性あり）", "law": "労働基準法、労働契約法", "state": "据え置き", "old": "F09-11 社内トラブル"}, {"site": "F09", "code": "F09-12", "name": "F09-12 特命", "sub": "1", "keep": "10年", "law": "ー", "state": "据え置き", "old": "F09-12 特命"}, {"site": "F10", "code": "F10-01", "name": "F10-01 規程・基準・就業規則", "sub": "3", "keep": "改廃後10年", "law": "", "state": "★意味が変化", "old": "F10-01 仕訳・帳簿管理"}, {"site": "F10", "code": "F10-02", "name": "F10-02 教育・研修", "sub": "1", "keep": "", "law": "", "state": "★意味が変化", "old": "F10-02 月次・年度決算"}, {"site": "F10", "code": "F10-03", "name": "F10-03 法令・会計基準 参考資料", "sub": "4", "keep": "最新版を保管", "law": "該当法令・会計基準", "state": "★意味が変化", "old": "F10-03 売掛金・債権管理"}, {"site": "F10", "code": "F10-04", "name": "F10-04 借入・リース・保証金管理", "sub": "7", "keep": "完済後10年", "law": "会社法、法人税法", "state": "★意味が変化", "old": "F10-04 買掛金・支払管理"}, {"site": "F10", "code": "F10-05", "name": "F10-05 月次・年度決算", "sub": "7", "keep": "10年", "law": "会社法（計算書類10年備置き）、税法", "state": "★意味が変化", "old": "F10-05 資金繰り・出納管理"}, {"site": "F10", "code": "F10-06", "name": "F10-06 与信・貸倒・法的債権回収", "sub": "3", "keep": "10年", "law": "会社法、法人税法、民法", "state": "★意味が変化", "old": "F10-06 税務申告・監査対応"}, {"site": "F10", "code": "F10-07", "name": "F10-07 月次損益・予実管理", "sub": "6", "keep": "10年", "law": "法人税法、電子帳簿保存法", "state": "★意味が変化", "old": "F10-07 借入・資金調達管理"}, {"site": "F10", "code": "F10-08", "name": "F10-08 税務申告・監査対応", "sub": "2", "keep": "10年", "law": "法人税法、会社法", "state": "★意味が変化", "old": "F10-08 補助金・助成金管理"}, {"site": "F10", "code": "F10-09", "name": "F10-09 資金繰り・出納管理", "sub": "14", "keep": "10年", "law": "法人税法・消費税法・電子帳簿保存法", "state": "★意味が変化", "old": "F10-09 経費精算管理"}, {"site": "F10", "code": "F10-10", "name": "F10-10 請求・入金・債権回収", "sub": "4", "keep": "交付後10年", "law": "補助金適正化法、各種助成金制度", "state": "★意味が変化", "old": "F10-10 支払管理"}, {"site": "F10", "code": "F10-11", "name": "F10-11 経費精算管理", "sub": "3", "keep": "10年", "law": "法人税法（経費証憑）", "state": "★意味が変化", "old": "F10-11 在庫・貯蔵品管理"}, {"site": "F10", "code": "F10-12", "name": "F10-12 在庫・貯蔵品管理", "sub": "3", "keep": "10年", "law": "法人税法（棚卸資産）", "state": "★意味が変化", "old": "F10-12 固定資産管理"}, {"site": "F10", "code": "F10-13", "name": "F10-13 固定資産管理", "sub": "3", "keep": "資産除却後10年", "law": "法人税法、地方税法", "state": "★意味が変化", "old": "F10-13 予算管理"}, {"site": "F10", "code": "F10-14", "name": "F10-14 予算管理", "sub": "3", "keep": "10年", "law": "明文規定なし", "state": "★新設", "old": "—"}, {"site": "F11", "code": "F11-01", "name": "F11-01 規程・基準・就業規則", "sub": "3", "keep": "改廃後10年", "law": "", "state": "★意味が変化", "old": "F11-01 IT戦略・企画"}, {"site": "F11", "code": "F11-02", "name": "F11-02 教育・研修", "sub": "1", "keep": "", "law": "", "state": "★意味が変化", "old": "F11-02 システム開発・導入"}, {"site": "F11", "code": "F11-03", "name": "F11-03 IT戦略・企画", "sub": "2", "keep": "5年", "law": "会社法（経営管理）、内部統制指針", "state": "★意味が変化", "old": "F11-03 インフラ運用・保守"}, {"site": "F11", "code": "F11-04", "name": "F11-04 システム開発・導入", "sub": "2", "keep": "システム廃止後5年", "law": "著作権法、民法（契約規程）", "state": "★新設", "old": "—"}, {"site": "F11", "code": "F11-05", "name": "F11-05 インフラ運用・保守", "sub": "2", "keep": "5年", "law": "著作権法、民法（契約規程）", "state": "★意味が変化", "old": "F11-05 ユーザーサポート・ヘルプデスク"}, {"site": "F11", "code": "F11-06", "name": "F11-06 ユーザーサポート・ヘルプデスク", "sub": "2", "keep": "3年", "law": "個人情報保護法", "state": "★意味が変化", "old": "F11-06 セキュリティ・アクセス管理"}, {"site": "F11", "code": "F11-07", "name": "F11-07 セキュリティ・アクセス管理", "sub": "3", "keep": "3年", "law": "個人情報保護法、各種ガイドライン", "state": "★意味が変化", "old": "F11-07 データ管理・バックアップ"}, {"site": "F11", "code": "F11-08", "name": "F11-08 データ管理・バックアップ", "sub": "2", "keep": "対象システムと同期間", "law": "電子帳簿保存法、個人情報保護法", "state": "★意味が変化", "old": "F11-08 ソフトウエア資産管理"}, {"site": "F11", "code": "F11-09", "name": "F11-09 ソフトウエア資産管理", "sub": "3", "keep": "ライセンス終了後5年", "law": "著作権法、ライセンス契約", "state": "★新設", "old": "—"}, {"site": "F12", "code": "F12-01", "name": "F12-01 規程・基準・就業規則", "sub": "3", "keep": "改廃後10年", "law": "", "state": "★意味が変化", "old": "F12-01 環境規制遵守・環境管理"}, {"site": "F12", "code": "F12-02", "name": "F12-02 教育・研修", "sub": "1", "keep": "", "law": "", "state": "★意味が変化", "old": "F12-02 廃棄物管理・リサイクル"}, {"site": "F12", "code": "F12-03", "name": "F12-03 廃棄物管理・リサイクル", "sub": "3", "keep": "5年", "law": "廃棄物処理法（産廃マニフェスト5年保存）", "state": "★意味が変化", "old": "F12-03 安全衛生教育・訓練"}, {"site": "F12", "code": "F12-04", "name": "F12-04 安全衛生教育・訓練", "sub": "6", "keep": "5年", "law": "労働安全衛生法、作業環境測定法", "state": "★意味が変化", "old": "F12-04 労災防止・報告"}, {"site": "F12", "code": "F12-05", "name": "F12-05 労災防止・報告", "sub": "4", "keep": "5〜10年（重大災害は長め）", "law": "労働基準法、労災保険法", "state": "★意味が変化", "old": "F12-05 防災・緊急時対応"}, {"site": "F12", "code": "F12-06", "name": "F12-06 エネルギー管理・省エネ活動", "sub": "2", "keep": "5年", "law": "省エネ法（エネルギー使用合理化法）", "state": "据え置き", "old": "F12-06 エネルギー管理・省エネ活動"}, {"site": "F13", "code": "F13-01", "name": "F13-01 規程・基準・就業規則", "sub": "3", "keep": "改廃後10年", "law": "", "state": "★意味が変化", "old": "F13-01 オフィス施設・設備管理"}, {"site": "F13", "code": "F13-02", "name": "F13-02 教育・研修", "sub": "1", "keep": "", "law": "", "state": "★意味が変化", "old": "F13-02 資産・備品管理"}, {"site": "F13", "code": "F13-03", "name": "F13-03 建物設備の維持管理", "sub": "4", "keep": "5年", "law": "建築基準法、消防法", "state": "★意味が変化", "old": "F13-03 文書・印章管理"}, {"site": "F13", "code": "F13-04", "name": "F13-04 防災・緊急時対応", "sub": "6", "keep": "5年", "law": "災害対策基本法、消防法 等", "state": "★意味が変化", "old": "F13-04 登記・株式・保険管理"}, {"site": "F13", "code": "F13-05", "name": "F13-05 資産・備品管理", "sub": "6", "keep": "10年", "law": "会社法、法人税法（固定資産台帳）", "state": "★意味が変化", "old": "F13-05 庶務・社内イベント"}, {"site": "F13", "code": "F13-06", "name": "F13-06 文書・印章管理", "sub": "3", "keep": "対象文書と同期間", "law": "会社法、民法、電子署名法", "state": "★意味が変化", "old": "F13-06 文書アーカイブ・旧データ保管"}, {"site": "F13", "code": "F13-07", "name": "F13-07 登記・株式・保険管理", "sub": "2", "keep": "10年以上", "law": "商業・不動産登記法、会社法、保険業法 等", "state": "★意味が変化", "old": "F13-07 外部向け制作物"}, {"site": "F13", "code": "F13-08", "name": "F13-08 庶務・社内イベント", "sub": "2", "keep": "3年", "law": "労基法（安全衛生面の一部）", "state": "★新設", "old": "—"}, {"site": "F13", "code": "F13-09", "name": "F13-09 広報・社外対応", "sub": "12", "keep": "10年", "law": "著作権法", "state": "★新設", "old": "—"}, {"site": "F14", "code": "F14-01", "name": "F14-01 規程・基準・就業規則", "sub": "3", "keep": "改廃後10年", "law": "", "state": "★意味が変化", "old": "F14-01 製品開発・研究プロジェクト"}, {"site": "F14", "code": "F14-02", "name": "F14-02 教育・研修", "sub": "1", "keep": "", "law": "", "state": "★意味が変化", "old": "F14-02 技術資料・仕様管理"}, {"site": "F14", "code": "F14-03", "name": "F14-03 製品開発・研究プロジェクト", "sub": "4", "keep": "10年", "law": "特許法、PL法", "state": "★意味が変化", "old": "F14-03 試験・検証記録"}, {"site": "F14", "code": "F14-04", "name": "F14-04 技術資料・仕様管理", "sub": "2", "keep": "10年", "law": "特許法、PL法", "state": "★意味が変化", "old": "F14-04 知的財産・特許管理"}, {"site": "F14", "code": "F14-05", "name": "F14-05 試験・検証記録", "sub": "2", "keep": "10年", "law": "PL法、取引先品質要求", "state": "★意味が変化", "old": "F14-05 技術教育・ノウハウ共有"}, {"site": "F14", "code": "F14-06", "name": "F14-06 知的財産・特許管理", "sub": "3", "keep": "権利存続期間＋10年", "law": "特許法・意匠法・商標法・実用新案法", "state": "★意味が変化", "old": "F14-06 技術クレーム対応"}, {"site": "F14", "code": "F14-07", "name": "F14-07 技術教育・ノウハウ共有", "sub": "20", "keep": "5年", "law": "明文規定なし", "state": "★意味が変化", "old": "F14-07 工程・品質条件管理"}, {"site": "F14", "code": "F14-08", "name": "F14-08 工程・品質条件管理", "sub": "4", "keep": "改廃後10年", "law": "明文規定なし", "state": "★意味が変化", "old": "F14-08 RAL・衛生基準認定"}, {"site": "F14", "code": "F14-09", "name": "F14-09 RAL・衛生基準認定", "sub": "3", "keep": "認証有効期間＋10年", "law": "認証規程による", "state": "★意味が変化", "old": "F14-09 省エネ管理・会議"}, {"site": "F15", "code": "F15-01", "name": "F15-01 教育・研修", "sub": "1", "keep": "", "law": "", "state": "★新設", "old": "—"}, {"site": "F15", "code": "F15-02", "name": "F15-02 契約管理", "sub": "10", "keep": "各種契約書のドラフト作成・リーガルチェック・審査依頼。", "law": "民法", "state": "★新設", "old": "—"}, {"site": "F15", "code": "F15-03", "name": "F15-03 見積・入札管理", "sub": "3", "keep": "各種契約書のドラフト作成・リーガルチェック・審査依頼。", "law": "民法", "state": "★新設", "old": "—"}, {"site": "F15", "code": "F15-04", "name": "F15-04 受発注管理", "sub": "3", "keep": "購買基本契約の締結と価格・条件交渉、ひな形・締結状況の管理。", "law": "民法", "state": "★新設", "old": "—"}, {"site": "F15", "code": "F15-05", "name": "F15-05 売上・仕入管理", "sub": "2", "keep": "各種契約書のドラフト作成・リーガルチェック・審査依頼。", "law": "民法", "state": "★新設", "old": "—"}, {"site": "F15", "code": "F15-06", "name": "F15-06 検収・納品管理", "sub": "4", "keep": "10年", "law": "法人税法・消費税法・電子帳簿保存法", "state": "★新設", "old": "—"}], "cols": [{"col": "文書種別", "type": "選択肢（単一）", "src": "rev10 小分類マスタ 462件", "req": "必須", "use": "「規定」「売買契約」「請求書（受領）」など文書の種類。ライブラリ横断で絞り込める", "how": "移管後に一括付与。フォルダ単位で既定値を設定"}, {"col": "担当部署", "type": "選択肢（複数）", "src": "12部署", "req": "必須", "use": "部署別ビューの生成元。共有フォルダは複数部署を持たせる", "how": "第1階層フォルダ名から機械的に付与"}, {"col": "保存期間", "type": "選択肢（単一）", "src": "rev10 標準保存期間（社内標準）", "req": "必須", "use": "10年／5年／改廃後10年／退職後5年 ほか。保持ラベルに連動", "how": "文書種別から自動。rev10 で441件に値あり"}, {"col": "得意先・取引先", "type": "テキスト", "src": "rev10 メタデータ列", "req": "任意", "use": "F15-02 契約管理・見積・受発注・請求で使用", "how": "移管後に運用で入力"}, {"col": "契約文書区分", "type": "選択肢（単一）", "src": "基本契約／個別契約／覚書 ほか", "req": "任意", "use": "F15-02 契約管理。rev10 メタデータ列の指定どおり", "how": "移管後に運用で入力"}, {"col": "原因区分", "type": "選択肢（単一）", "src": "品質／技術／生産／運行管理 ほか", "req": "任意", "use": "F02-05 クレーム対応（社外）。rev10 メタデータ列の指定どおり", "how": "移管後に運用で入力"}, {"col": "年度", "type": "数値", "src": "—", "req": "任意", "use": "会計期・年度別の絞り込み。フォルダの年度階層を置き換える", "how": "ファイル名・更新日から推定して一括付与"}, {"col": "拠点", "type": "選択肢（単一）", "src": "工場・営業所マスタ", "req": "任意", "use": "生産部より拠点別フォルダのご要望（レビュー No.22）。列で持てばフォルダを増やさずに済む", "how": "確認会で拠点マスタを確定してから"}], "keep": [{"span": "10年", "n": "116", "label": "保持-10年", "base": "作成日"}, {"span": "5年", "n": "107", "label": "保持-5年", "base": "作成日"}, {"span": "改廃後10年", "n": "46", "label": "保持-改廃後10年", "base": "改廃日"}, {"span": "退職後5年", "n": "17", "label": "保持-退職後5年", "base": "退職日"}, {"span": "7年", "n": "16", "label": "保持-7年", "base": "作成日"}, {"span": "3年（採用）/受入関連は5年", "n": "10", "label": "保持-3年（採用）/受入関連は5年", "base": "作成日"}, {"span": "5〜10年", "n": "9", "label": "保持-5〜10年", "base": "作成日"}, {"span": "3〜5年（安全衛生関連は5年）", "n": "9", "label": "保持-3〜5年（安全衛生関連は5年）", "base": "作成日"}, {"span": "10年（公益通報・許認可は長め）", "n": "8", "label": "保持-10年（公益通報・許認可は長め）", "base": "作成日"}, {"span": "3年", "n": "7", "label": "保持-3年", "base": "作成日"}, {"span": "5〜10年（設備更新は資産に準拠）", "n": "5", "label": "保持-5〜10年（設備更新は資産に準拠）", "base": "作成日"}], "noteKeep": "※ rev10 の保存期間欄には、活動内容の説明文が入っている行が17件あります（例：F03-01 に『各種契約書のドラフト作成…』）。ラベル設計の前に法務・管理本部でのご確認が必要です。", "map": [{"oc": "F01-01", "on": "経営計画・方針策定", "n": "66", "nc": "F01-03", "nn": "経営計画・方針策定", "act": "改番"}, {"oc": "F01-02", "on": "取締役会・株主総会", "n": "3", "nc": "F01-04", "nn": "取締役会・株主総会", "act": "改番"}, {"oc": "F01-03", "on": "内部統制・監査", "n": "1", "nc": "F01-05", "nn": "内部統制・監査", "act": "改番"}, {"oc": "F01-04", "on": "法令遵守・リスク管理", "n": "1", "nc": "F03-04", "nn": "法令遵守・リスク管理", "act": "改番"}, {"oc": "F01-05", "on": "広報・社外対応", "n": "23", "nc": "F13-09", "nn": "広報・社外対応", "act": "改番"}, {"oc": "F01-06", "on": "規格、基準", "n": "51", "nc": "—", "nn": "—", "act": "廃止／要判断"}, {"oc": "F01-07", "on": "会議", "n": "0", "nc": "F01-06", "nn": "会議", "act": "改番"}, {"oc": "F02-01", "on": "営業計画・マーケティング", "n": "4", "nc": "F02-03", "nn": "営業計画・マーケティング", "act": "改番"}, {"oc": "F02-02", "on": "顧客契約・受注管理", "n": "21", "nc": "—", "nn": "—", "act": "廃止／要判断"}, {"oc": "F02-03", "on": "顧客対応・クレーム処理", "n": "5", "nc": "—", "nn": "—", "act": "廃止／要判断"}, {"oc": "F02-04", "on": "売上管理・請求", "n": "26", "nc": "—", "nn": "—", "act": "廃止／要判断"}, {"oc": "F02-05", "on": "営業報告・分析", "n": "19", "nc": "—", "nn": "—", "act": "廃止／要判断"}, {"oc": "F02-06", "on": "顧客支給・貸与資料管理", "n": "1", "nc": "F02-06", "nn": "顧客支給・貸与資料管理", "act": "据え置き"}, {"oc": "F03-01", "on": "契約書作成・審査", "n": "4", "nc": "—", "nn": "—", "act": "廃止／要判断"}, {"oc": "F03-02", "on": "契約管理・保管", "n": "36", "nc": "—", "nn": "—", "act": "廃止／要判断"}, {"oc": "F03-03", "on": "法規制対応・許認可取得", "n": "26", "nc": "F03-03", "nn": "法規制対応・許認可取得", "act": "据え置き"}, {"oc": "F03-04", "on": "紛争・訴訟対応", "n": "3", "nc": "F03-06", "nn": "紛争・訴訟対応", "act": "改番"}, {"oc": "F03-05", "on": "社内法務・規程管理", "n": "6", "nc": "F03-07", "nn": "社内法務・規程管理", "act": "改番"}, {"oc": "F03-06", "on": "法令・会計基準 参考資料（外部）", "n": "1", "nc": "—", "nn": "—", "act": "廃止／要判断"}, {"oc": "F04-01", "on": "購買計画・予算管理", "n": "13", "nc": "F04-03", "nn": "購買計画・予算管理", "act": "改番"}, {"oc": "F04-02", "on": "サプライヤ選定・評価", "n": "12", "nc": "F04-04", "nn": "サプライヤ選定・評価", "act": "改番"}, {"oc": "F04-03", "on": "発注・検収管理", "n": "19", "nc": "—", "nn": "—", "act": "廃止／要判断"}, {"oc": "F04-04", "on": "購買契約・価格交渉", "n": "13", "nc": "F04-05", "nn": "購買契約・価格交渉", "act": "改番"}, {"oc": "F04-05", "on": "請求書処理・支払管理", "n": "16", "nc": "—", "nn": "—", "act": "廃止／要判断"}, {"oc": "F04-06", "on": "購買データ分析・統計資料", "n": "8", "nc": "F04-06", "nn": "購買データ分析・統計資料", "act": "据え置き"}, {"oc": "F04-07", "on": "購買マスタ管理", "n": "4", "nc": "F04-07", "nn": "購買マスタ管理", "act": "据え置き"}, {"oc": "F05-01", "on": "生産計画・工程管理", "n": "14", "nc": "F05-03", "nn": "生産計画・工程管理", "act": "改番"}, {"oc": "F05-02", "on": "洗濯作業管理", "n": "1", "nc": "F05-04", "nn": "洗濯作業管理", "act": "改番"}, {"oc": "F05-03", "on": "仕上げ作業管理", "n": "1", "nc": "F05-05", "nn": "仕上げ作業管理", "act": "改番"}, {"oc": "F05-04", "on": "設備点検・メンテナンス", "n": "18", "nc": "—", "nn": "—", "act": "廃止／要判断"}, {"oc": "F05-05", "on": "生産実績・歩留まり管理", "n": "3", "nc": "F05-07", "nn": "生産実績・歩留まり管理", "act": "改番"}, {"oc": "F06-01", "on": "品質方針・マニュアル", "n": "15", "nc": "—", "nn": "—", "act": "廃止／要判断"}, {"oc": "F06-02", "on": "受入・出荷検品", "n": "1", "nc": "F06-03", "nn": "受入・出荷検品", "act": "改番"}, {"oc": "F06-03", "on": "不良・クレーム対応", "n": "10", "nc": "—", "nn": "—", "act": "廃止／要判断"}, {"oc": "F06-04", "on": "品質監査・認証取得", "n": "21", "nc": "F06-04", "nn": "品質監査・認証取得", "act": "据え置き"}, {"oc": "F06-05", "on": "是正措置・改善活動", "n": "18", "nc": "F06-05", "nn": "是正措置・改善活動", "act": "据え置き"}, {"oc": "F07-01", "on": "配送計画・ルート設定", "n": "10", "nc": "F07-03", "nn": "配送計画・ルート設定", "act": "改番"}, {"oc": "F07-02", "on": "出荷準備・配達実行", "n": "1", "nc": "F07-04", "nn": "出荷準備・配達実行", "act": "改番"}, {"oc": "F07-03", "on": "車両・運行管理", "n": "14", "nc": "F07-05", "nn": "車両・運行管理", "act": "改番"}, {"oc": "F07-04", "on": "配送実績・受領確認", "n": "2", "nc": "F07-06", "nn": "配送実績・受領確認", "act": "改番"}, {"oc": "F07-05", "on": "倉庫管理・在庫補充", "n": "3", "nc": "F07-07", "nn": "倉庫管理・在庫補充", "act": "改番"}, {"oc": "F08-01", "on": "在庫計画・棚卸", "n": "6", "nc": "F08-03", "nn": "在庫計画・棚卸", "act": "改番"}, {"oc": "F08-02", "on": "入庫・保管管理", "n": "13", "nc": "F08-04", "nn": "入庫・保管管理", "act": "改番"}, {"oc": "F08-03", "on": "リネン貸出・回収管理", "n": "2", "nc": "F08-05", "nn": "リネン貸出・回収管理", "act": "改番"}, {"oc": "F08-04", "on": "消耗資材管理・発注", "n": "7", "nc": "F08-06", "nn": "消耗資材管理・発注", "act": "改番"}, {"oc": "F08-05", "on": "老朽品廃棄・更新", "n": "1", "nc": "F08-07", "nn": "老朽品廃棄・更新", "act": "改番"}, {"oc": "F08-06", "on": "リネン管理", "n": "1", "nc": "F08-08", "nn": "リネン管理", "act": "改番"}, {"oc": "F09-01", "on": "採用・人員計画", "n": "52", "nc": "F09-03", "nn": "採用・人員計画", "act": "改番"}, {"oc": "F09-02", "on": "人事記録・異動管理", "n": "43", "nc": "F09-04", "nn": "人事記録・異動管理", "act": "改番"}, {"oc": "F09-03", "on": "勤怠・給与計算", "n": "50", "nc": "F09-05", "nn": "勤怠・給与計算", "act": "改番"}, {"oc": "F09-04", "on": "社会保険・福利厚生", "n": "11", "nc": "F09-06", "nn": "社会保険・福利厚生", "act": "改番"}, {"oc": "F09-05", "on": "教育・研修", "n": "20", "nc": "F01-02／F02-02／F03-02／F04-02／F05-02／F06-02／F07-02／F08-02／F09-02／F10-02／F11-02／F12-02／F13-02／F14-02／F15-01", "nn": "教育・研修", "act": "改番"}, {"oc": "F09-06", "on": "労働保険", "n": "1", "nc": "F09-07", "nn": "労働保険", "act": "改番"}, {"oc": "F09-07", "on": "海外人材", "n": "2", "nc": "F09-08", "nn": "海外人材", "act": "改番"}, {"oc": "F09-08", "on": "行政定期調査", "n": "1", "nc": "F09-09", "nn": "行政定期調査", "act": "改番"}, {"oc": "F09-09", "on": "助成金", "n": "1", "nc": "—", "nn": "—", "act": "廃止／要判断"}, {"oc": "F09-10", "on": "就業規則違反", "n": "1", "nc": "F09-10", "nn": "就業規則違反", "act": "据え置き"}, {"oc": "F09-11", "on": "社内トラブル", "n": "5", "nc": "F09-11", "nn": "社内トラブル", "act": "据え置き"}, {"oc": "F09-12", "on": "特命", "n": "1", "nc": "F09-12", "nn": "特命", "act": "据え置き"}, {"oc": "F10-01", "on": "仕訳・帳簿管理", "n": "26", "nc": "—", "nn": "—", "act": "廃止／要判断"}, {"oc": "F10-02", "on": "月次・年度決算", "n": "5", "nc": "F10-05", "nn": "月次・年度決算", "act": "改番"}, {"oc": "F10-03", "on": "売掛金・債権管理", "n": "24", "nc": "—", "nn": "—", "act": "廃止／要判断"}, {"oc": "F10-04", "on": "買掛金・支払管理", "n": "19", "nc": "—", "nn": "—", "act": "廃止／要判断"}, {"oc": "F10-05", "on": "資金繰り・出納管理", "n": "4", "nc": "F10-09", "nn": "資金繰り・出納管理", "act": "改番"}, {"oc": "F10-06", "on": "税務申告・監査対応", "n": "12", "nc": "F10-08", "nn": "税務申告・監査対応", "act": "改番"}, {"oc": "F10-07", "on": "借入・資金調達管理", "n": "1", "nc": "—", "nn": "—", "act": "廃止／要判断"}, {"oc": "F10-08", "on": "補助金・助成金管理", "n": "8", "nc": "—", "nn": "—", "act": "廃止／要判断"}, {"oc": "F10-09", "on": "経費精算管理", "n": "6", "nc": "F10-11", "nn": "経費精算管理", "act": "改番"}, {"oc": "F10-10", "on": "支払管理", "n": "7", "nc": "—", "nn": "—", "act": "廃止／要判断"}, {"oc": "F10-11", "on": "在庫・貯蔵品管理", "n": "2", "nc": "F10-12", "nn": "在庫・貯蔵品管理", "act": "改番"}, {"oc": "F10-12", "on": "固定資産管理", "n": "3", "nc": "F10-13", "nn": "固定資産管理", "act": "改番"}, {"oc": "F10-13", "on": "予算管理", "n": "12", "nc": "F10-14", "nn": "予算管理", "act": "改番"}, {"oc": "F11-01", "on": "IT戦略・企画", "n": "11", "nc": "F11-03", "nn": "IT戦略・企画", "act": "改番"}, {"oc": "F11-02", "on": "システム開発・導入", "n": "87", "nc": "F11-04", "nn": "システム開発・導入", "act": "改番"}, {"oc": "F11-03", "on": "インフラ運用・保守", "n": "96", "nc": "F11-05", "nn": "インフラ運用・保守", "act": "改番"}, {"oc": "F11-05", "on": "ユーザーサポート・ヘルプデスク", "n": "1", "nc": "F11-06", "nn": "ユーザーサポート・ヘルプデスク", "act": "改番"}, {"oc": "F11-06", "on": "セキュリティ・アクセス管理", "n": "4", "nc": "F11-07", "nn": "セキュリティ・アクセス管理", "act": "改番"}, {"oc": "F11-07", "on": "データ管理・バックアップ", "n": "1", "nc": "F11-08", "nn": "データ管理・バックアップ", "act": "改番"}, {"oc": "F11-08", "on": "ソフトウエア資産管理", "n": "1", "nc": "F11-09", "nn": "ソフトウエア資産管理", "act": "改番"}, {"oc": "F12-01", "on": "環境規制遵守・環境管理", "n": "23", "nc": "F03-05", "nn": "環境規制遵守・環境管理", "act": "改番"}, {"oc": "F12-02", "on": "廃棄物管理・リサイクル", "n": "4", "nc": "F12-03", "nn": "廃棄物管理・リサイクル", "act": "改番"}, {"oc": "F12-03", "on": "安全衛生教育・訓練", "n": "25", "nc": "F12-04", "nn": "安全衛生教育・訓練", "act": "改番"}, {"oc": "F12-04", "on": "労災防止・報告", "n": "9", "nc": "F12-05", "nn": "労災防止・報告", "act": "改番"}, {"oc": "F12-05", "on": "防災・緊急時対応", "n": "5", "nc": "F13-04", "nn": "防災・緊急時対応", "act": "改番"}, {"oc": "F12-06", "on": "エネルギー管理・省エネ活動", "n": "17", "nc": "F12-06", "nn": "エネルギー管理・省エネ活動", "act": "据え置き"}, {"oc": "F13-01", "on": "オフィス施設・設備管理", "n": "15", "nc": "—", "nn": "—", "act": "廃止／要判断"}, {"oc": "F13-02", "on": "資産・備品管理", "n": "15", "nc": "F13-05", "nn": "資産・備品管理", "act": "改番"}, {"oc": "F13-03", "on": "文書・印章管理", "n": "6", "nc": "F13-06", "nn": "文書・印章管理", "act": "改番"}, {"oc": "F13-04", "on": "登記・株式・保険管理", "n": "15", "nc": "F13-07", "nn": "登記・株式・保険管理", "act": "改番"}, {"oc": "F13-05", "on": "庶務・社内イベント", "n": "20", "nc": "F13-08", "nn": "庶務・社内イベント", "act": "改番"}, {"oc": "F13-06", "on": "文書アーカイブ・旧データ保管", "n": "13", "nc": "—", "nn": "—", "act": "廃止／要判断"}, {"oc": "F13-07", "on": "外部向け制作物", "n": "1", "nc": "—", "nn": "—", "act": "廃止／要判断"}, {"oc": "F14-01", "on": "製品開発・研究プロジェクト", "n": "20", "nc": "F14-03", "nn": "製品開発・研究プロジェクト", "act": "改番"}, {"oc": "F14-02", "on": "技術資料・仕様管理", "n": "25", "nc": "F14-04", "nn": "技術資料・仕様管理", "act": "改番"}, {"oc": "F14-03", "on": "試験・検証記録", "n": "12", "nc": "F14-05", "nn": "試験・検証記録", "act": "改番"}, {"oc": "F14-04", "on": "知的財産・特許管理", "n": "5", "nc": "F14-06", "nn": "知的財産・特許管理", "act": "改番"}, {"oc": "F14-05", "on": "技術教育・ノウハウ共有", "n": "31", "nc": "F14-07", "nn": "技術教育・ノウハウ共有", "act": "改番"}, {"oc": "F14-06", "on": "技術クレーム対応", "n": "1", "nc": "—", "nn": "—", "act": "廃止／要判断"}, {"oc": "F14-07", "on": "工程・品質条件管理", "n": "19", "nc": "F14-08", "nn": "工程・品質条件管理", "act": "改番"}, {"oc": "F14-08", "on": "RAL・衛生基準認定", "n": "8", "nc": "F14-09", "nn": "RAL・衛生基準認定", "act": "改番"}, {"oc": "F14-09", "on": "省エネ管理・会議", "n": "12", "nc": "—", "nn": "—", "act": "廃止／要判断"}, {"oc": "F14-10", "on": "技術教育・ツール", "n": "1", "nc": "—", "nn": "—", "act": "廃止／要判断"}, {"oc": "F14-11", "on": "技術系会議・報告資料", "n": "14", "nc": "—", "nn": "—", "act": "廃止／要判断"}, {"oc": "F14-13", "on": "特許管理", "n": "1", "nc": "—", "nn": "—", "act": "廃止／要判断"}, {"oc": "F14-14", "on": "業務計画・週報", "n": "2", "nc": "—", "nn": "—", "act": "廃止／要判断"}], "ask": [{"no": "1", "cat": "データ不備", "tgt": "F15-03〜F15-06", "body": "小分類コードが中分類コードと合っていません。F15-03 見積・入札管理の小分類が F15-02-11〜13、F15-04 が F15-02-14〜16、F15-05 が F15-02-17〜18、F15-06 が F15-02-19〜22 のままです（計12件）。", "ours": "F15-03-01 のように中分類コードに合わせて振り直します。列の選択肢を作る前に確定が必要です。", "pri": "高"}, {"no": "2", "cat": "データ不備", "tgt": "F01-02 教育・研修", "body": "小分類コードが F01-01-03 になっています。F01-02-01 が正しいと思われます。", "ours": "F01-02-01 に振り直します。", "pri": "高"}, {"no": "3", "cat": "データ不備", "tgt": "F14-02／F15-01", "body": "教育・研修の小分類名が空欄です（14件が空欄）。", "ours": "文書種別の選択肢が作れないため、名称のご記入をお願いします。", "pri": "高"}, {"no": "4", "cat": "レビュー未反映", "tgt": "F14-13 特許管理", "body": "生産技術部より「申請・特許管理に改称し、申請文書5種（エネルギー／廃棄物／投資・補助金／カーボンニュートラル／その他）を追加」とのご要望（8/20 レビュー No.70）。rev10 では F14-06 知的財産・特許管理に統合され、申請文書は入っていません。", "ours": "F14-06 の小分類に申請文書5種を追加します。", "pri": "高"}, {"no": "5", "cat": "レビュー未反映", "tgt": "F14-14 業務計画・週報", "body": "生産技術部より「業務管理・報告書類に改称し13フォルダ」とのご要望（No.71）。rev10 では F14-14 が廃止され、「週報」という小分類も1件もありません。", "ours": "注文記録・仕入れ先データ・工程管理記録・各種会議資料は、rev10 では F15・F04・F01-06 に分散します。生産技術部と再度すり合わせが必要です。", "pri": "高"}, {"no": "6", "cat": "レビュー未反映", "tgt": "F14-02 工事管理文書", "body": "生産技術部より追加のご要望（No.66）。rev10 の F14-04 技術資料・仕様管理の小分類は「製品仕様書」「設計図面」の2件のみで、工事管理文書がありません。", "ours": "F14-04 の小分類に追加します。", "pri": "中"}, {"no": "7", "cat": "設計判断", "tgt": "小分類の持ち方", "body": "462 の小分類を、フォルダにするか列にするか。", "ours": "列（文書種別）で持つことをお勧めします。理由は 0_変更サマリ に記載しています。", "pri": "高"}, {"no": "8", "cat": "設計判断", "tgt": "F15 契約・商取引管理", "body": "契約・見積・受発注・請求・検収が F03 から F15 へ移ります。現行設計では F03-01 契約書作成・審査／F03-02 契約管理・保管 に 44 フォルダが割り当たっています。", "ours": "F15 サイトを新設し、経理部・法務（管理本部）を主管にします。購買室・営業部の受発注文書との境界を確認会で決めます。", "pri": "高"}, {"no": "9", "cat": "設計判断", "tgt": "F12-01 の移動", "body": "環境規制遵守・環境管理が F12-01 から F03-05（法務管理）へ移っています。品質技術課の重複解消のご指摘（No.8）の対象がサイトをまたぐことになります。", "ours": "環境法規は法務、現場の環境管理は F12 に残す切り分けが要ります。ISO管理室と生産部を交えてご確認ください。", "pri": "高"}, {"no": "10", "cat": "設計判断", "tgt": "「規程・基準」の重複", "body": "15大分類すべてに「規程・基準」ライブラリができます。全社規程は F01-01 と重複しませんか。", "ours": "F01-01 を全社規程の正本とし、各大分類の -01 はその業務固有の基準書に限る、という切り分けを提案します。", "pri": "中"}, {"no": "11", "cat": "設計判断", "tgt": "「教育・研修」の重複", "body": "同じく15大分類すべてに「教育・研修」ができます。旧 F09-05（人事の教育・研修）との関係が不明です。", "ours": "全社共通の研修は F09-02、業務固有の技術教育は各大分類の -02 に置く切り分けを提案します。", "pri": "中"}, {"no": "12", "cat": "影響確認", "tgt": "課題一覧の回答", "body": "課題一覧46件の回答のうち、中分類コードを引用しているものは読み替えが必要です。", "ours": "4_新旧対応表に沿って当社で洗い出し、修正版をお出しします。", "pri": "中"}, {"no": "13", "cat": "影響確認", "tgt": "移行対応表", "body": "1,558フォルダの移行先マッピングは旧コードで作られています。改番 66 本ぶんの付け替えが必要です。", "ours": "4_新旧対応表を使って機械的に付け替えます。廃止・要判断の29本のみ個別対応です。", "pri": "高"}, {"no": "14", "cat": "影響確認", "tgt": "デモ・設計書", "body": "公開中のデモ（v3.5／v3.8）と設計書は旧コードです。", "ours": "確認会で rev10 の採用が決まり次第、作り直します。決まるまでは旧コードのまま据え置きます。", "pri": "中"}, {"no": "15", "cat": "アクセス設計", "tgt": "管理部署・利用部署", "body": "rev10 の管理部署列は6件、利用部署列は71件しか記入がありません。アクセスレベル（L1〜L4）の記載も2件のみです。", "ours": "公開範囲は v3.8 のルール（主管部署＋第1階層に名前のある部署）を引き続き使います。rev10 側で決める場合は、118本ぶんの主管部署のご記入が必要です。", "pri": "高"}], "stats": {"sites": 20, "libs": 118, "sub": 462, "chg": 90, "act": {"改番": 66, "廃止／要判断": 29, "据え置き": 10}, "folMoved": 892, "folUndec": 387, "ask": 15, "askHigh": 10}};
+
+const S = { state:"ALL", q:"", act:"ALL", mq:"", cat:"ALL" };
+const $ = s => document.querySelector(s);
+const el = (t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e;};
+const esc = s => String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const stat = (v,u,k)=>`<div class="stat"><div class="v">${v}<span class="u">${u}</span></div><div class="k">${k}</div></div>`;
+
+/* ライブラリの状態を判定 */
+function libState(l){
+  if(!l.old || l.old==="—") return "new";
+  if(l.state.indexOf("意味が変化")>=0) return "chg";
+  return "ok";
+}
+const STATE_B = { ok:'<span class="b b-ok">据え置き</span>',
+                  chg:'<span class="b b-chg">意味が変化</span>',
+                  new:'<span class="b b-new">新設</span>' };
+
+/* ---------------- tabs ---------------- */
+document.querySelectorAll("nav button").forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll("nav button").forEach(x=>x.classList.remove("on"));
+    document.querySelectorAll(".panel").forEach(x=>x.classList.remove("on"));
+    b.classList.add("on"); $("#p-"+b.dataset.p).classList.add("on"); window.scrollTo(0,0);
+  };
+});
+
+/* ---------------- chips ---------------- */
+function chips(host, items, key, cb){
+  host.innerHTML="";
+  items.forEach(it=>{
+    const c=el("button","chip",it.l);
+    if(it.color){c.dataset.c="1";c.style.setProperty("--c",it.color);}
+    if(S[key]===it.v) c.classList.add("on");
+    c.onclick=()=>{ S[key] = (S[key]===it.v?"ALL":it.v); chips(host,items,key,cb); cb(); };
+    host.appendChild(c);
+  });
+}
+
+/* ---------------- サイトとライブラリ ---------------- */
+function renderSites(){
+  const host=$("#sites");
+  const open=new Set([...host.querySelectorAll(".site.open")].map(n=>n.dataset.id));
+  host.innerHTML="";
+  const q=S.q.toLowerCase();
+  let shown=0;
+
+  D.sites.forEach(s=>{
+    let libs = D.libs.filter(l=>l.site===s.id);
+    const detail = libs.length>0;   // 明細を持つのは F01〜F15 の業務サイトのみ
+    if(S.state!=="ALL") libs = libs.filter(l=>libState(l)===S.state);
+    if(q) libs = libs.filter(l=>(l.code+l.name+l.old).toLowerCase().includes(q));
+    const hit = libs.length>0 || (!q && S.state==="ALL" && !detail);
+    if(!hit) return;
+    shown++;
+
+    const c=el("div","card site"); c.dataset.id=s.id; c.style.marginBottom="10px";
+    if(open.has(s.id)||q||S.state!=="ALL") c.classList.add("open");
+    const badge = s.kind==="ハブ" ? "b-hub" : (s.kind==="業務" ? "b-site" : "b-sp");
+    const isNew = (s.chg||"").indexOf("新設")>=0;
+
+    const head=el("div","site-h",`
+      <div class="site-id" style="${s.kind!=="業務"?"background:#8a8886":""}">${esc(s.id)}</div>
+      <div class="site-b">
+        <p class="site-n">${esc(s.name)} ${isNew?'<span class="b b-new">新設</span>':""}</p>
+        <p class="site-d">${esc(s.chg||"v3.5 から変更なし")}</p>
+      </div>
+      <div class="site-r">
+        <span class="b ${badge}">${esc(s.kind)}</span>
+        <span>${detail ? libs.length+" / "+esc(s.libs) : esc(s.libs)} ライブラリ</span>
+        <span>${s.sub && s.sub!=="—" ? esc(s.sub)+" 小分類" : "—"}</span>
+        <span class="caret">▶</span>
+      </div>`);
+    head.onclick=()=>c.classList.toggle("open");
+    c.appendChild(head);
+
+    if(!detail){
+      c.appendChild(el("div","site-body",
+        `<p class="dim" style="padding:12px 16px;margin:0">`+
+        `このサイトのライブラリは大分類ごとに作ります。内訳は F01〜F15 の各サイトをご覧ください。</p>`));
+    } else if(libs.length){
+      c.appendChild(el("div","site-body",`<table>
+        <thead><tr><th style="width:96px">コード</th><th style="width:26%">ライブラリ名</th>
+          <th style="width:66px" class="num">小分類</th><th style="width:104px">状態</th>
+          <th style="width:23%">v3.5 で同コードだったもの</th><th>標準保存期間</th></tr></thead>
+        <tbody>${libs.map(l=>`<tr>
+          <td class="mono">${esc(l.code)}</td>
+          <td><b>${esc(l.name.replace(l.code+" ",""))}</b></td>
+          <td class="num">${esc(l.sub)}</td>
+          <td>${STATE_B[libState(l)]}</td>
+          <td class="dim">${esc(l.old&&l.old!=="—"?l.old:"（rev10 で新設）")}</td>
+          <td class="dim">${esc(l.keep||"—")}</td>
+        </tr>`).join("")}</tbody></table>`));
+    }
+    host.appendChild(c);
+  });
+  if(!shown) host.appendChild(el("div","card empty","条件に合うライブラリがありません。"));
+}
+
+/* ---------------- 新旧対応 ---------------- */
+const ACT_B = a => a==="据え置き" ? '<span class="b b-ok">据え置き</span>'
+              : a==="改番" ? '<span class="b b-chg">改番</span>'
+              : '<span class="b b-ng">廃止／要判断</span>';
+
+function renderMap(){
+  const q=S.mq.toLowerCase();
+  const rows=D.map.filter(m=>
+    (S.act==="ALL"||m.act===S.act) &&
+    (!q||(m.oc+m.on+m.nc+m.nn).toLowerCase().includes(q)));
+  $("#maprows").innerHTML = rows.length ? rows.map(m=>`<tr>
+      <td class="mono">${esc(m.oc)}</td>
+      <td>${esc(m.on)}</td>
+      <td class="num">${esc(m.n)}</td>
+      <td class="arrow">→</td>
+      <td class="mono">${m.nc==="—"?'<span class="dim">—</span>':esc(m.nc)}</td>
+      <td>${m.nn==="—"?'<span class="dim">移行先を確認会で決めます</span>':esc(m.nn)}</td>
+      <td>${ACT_B(m.act)}</td>
+    </tr>`).join("") : `<tr><td colspan="7" class="empty">該当する行がありません。</td></tr>`;
+}
+
+/* ---------------- 文書種別・列 ---------------- */
+function renderCols(){
+  $("#colrows").innerHTML = D.cols.map(c=>`<tr>
+    <td><b>${esc(c.col)}</b></td><td class="dim">${esc(c.type)}</td><td class="dim">${esc(c.src)}</td>
+    <td>${c.req==="必須"?'<span class="b b-chg">必須</span>':'<span class="b b-sp">任意</span>'}</td>
+    <td class="dim">${esc(c.use)}</td><td class="dim">${esc(c.how)}</td></tr>`).join("");
+  $("#keeprows").innerHTML = D.keep.map(k=>`<tr>
+    <td>${esc(k.span)}</td><td class="num">${esc(k.n)}</td>
+    <td class="mono">${esc(k.label)}</td><td class="dim">${esc(k.base)}</td>
+    <td class="dim">文書種別（列の値）に紐づけ</td></tr>`).join("");
+  $("#keep-note").textContent = D.noteKeep;
+}
+
+/* ---------------- 確認事項 ---------------- */
+function renderAsk(){
+  const host=$("#askrows"); host.innerHTML="";
+  const rows=D.ask.filter(a=>S.cat==="ALL"||a.cat===S.cat);
+  if(!rows.length){host.appendChild(el("div","card empty","該当する項目がありません。"));return;}
+  rows.forEach(a=>{
+    const pri = a.pri==="高" ? '<span class="b b-ng">急ぎ</span>' : '<span class="b b-sp">'+esc(a.pri)+'</span>';
+    const c=el("div","card");c.style.marginBottom="10px";
+    c.innerHTML=`
+      <div style="padding:12px 16px;display:flex;gap:11px;align-items:flex-start;flex-wrap:wrap">
+        <div style="flex:none;width:30px;height:30px;border-radius:7px;background:var(--navy);color:#fff;
+             display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px">${esc(a.no)}</div>
+        <div style="flex:1;min-width:260px">
+          <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">
+            <span class="b b-sp">${esc(a.cat)}</span>
+            <b style="color:var(--navy);font-size:14px">${esc(a.tgt)}</b>${pri}
+          </div>
+          <p class="dim" style="margin:6px 0 0">${esc(a.body)}</p>
+          <p style="margin:7px 0 0;font-size:12.5px;color:var(--blue)"><b>当社案：</b>${esc(a.ours)}</p>
+        </div>
+      </div>`;
+    host.appendChild(c);
+  });
+}
+
+/* ---------------- boot ---------------- */
+(function(){
+  const st=D.stats;
+  $("#hd-meta").innerHTML =
+    `サイト ${st.sites}　ライブラリ ${st.libs}　小分類 ${st.sub}<br>` +
+    `各部門レビュー（71件）は未反映`;
+
+  $("#site-lede").innerHTML =
+    `大分類がサイト、中分類がドキュメント ライブラリになります。`+
+    `<b>${st.libs}</b> 本のうち <b>${st.chg}</b> 本は、v3.5 と同じコードのまま中分類が別物に変わります。`;
+
+  $("#site-stats").innerHTML =
+    stat(st.sites,"サイト","19 → 20（F15 新設）") +
+    stat(st.libs,"ライブラリ","105 → 118（新設18・廃止5）") +
+    stat(st.sub,"小分類","「文書種別」列で持ちます") +
+    stat(st.chg,"本","同じコードで中身が変わる") +
+    stat(D.cols.length,"列","全ライブラリへ展開するサイト列");
+
+  $("#map-lede").innerHTML =
+    `現行の設計書・移行対応表・課題一覧の回答は、すべて旧コードで書かれています。`+
+    `コードだけを見て読み替えると別のライブラリに移るため、1本ずつ突き合わせた表です。`;
+
+  const a=st.act;
+  $("#map-stats").innerHTML =
+    stat(D.map.length,"本","v3.5 の業務ライブラリ") +
+    stat(a["据え置き"]||0,"本","コード・中身とも変わらない") +
+    stat(a["改番"]||0,"本","移行先の付け替えが必要") +
+    stat(a["廃止／要判断"]||0,"本","rev10 に同名の中分類がない");
+
+  $("#map-note").textContent =
+    `改番 ${a["改番"]||0} 本に含まれるフォルダ ${st.folMoved} 件は、新旧対応に沿って機械的に付け替えられます。`+
+    `廃止／要判断 ${a["廃止／要判断"]||0} 本に含まれるフォルダ ${st.folUndec} 件は、移行先を確認会で個別に決める必要があります。`;
+
+  $("#col-lede").innerHTML =
+    `小分類 <b>${st.sub}</b> 件はフォルダではなく「文書種別」列の選択肢として持ちます。`+
+    `列はすべてサイト列として作り、全ライブラリへ展開します。`;
+
+  $("#ask-lede").innerHTML =
+    `設計を確定する前に決めていただきたい点が <b>${st.ask}</b> 件あります（うち急ぎ <b>${st.askHigh}</b> 件）。`;
+
+  chips($("#f-state"),[{v:"ALL",l:"すべて"},{v:"ok",l:"据え置き",color:"#107c10"},
+    {v:"chg",l:"意味が変化",color:"#c55a11"},{v:"new",l:"新設",color:"#7719aa"}],"state",renderSites);
+  chips($("#f-act"),[{v:"ALL",l:"すべて"},{v:"据え置き",l:"据え置き",color:"#107c10"},
+    {v:"改番",l:"改番",color:"#c55a11"},{v:"廃止／要判断",l:"廃止／要判断",color:"#c50f1f"}],"act",renderMap);
+  chips($("#f-cat"),[{v:"ALL",l:"すべて"}].concat(
+    [...new Set(D.ask.map(x=>x.cat))].map(c=>({v:c,l:c}))),"cat",renderAsk);
+
+  $("#f-q").oninput  = e=>{S.q=e.target.value.trim();renderSites();};
+  $("#f-mq").oninput = e=>{S.mq=e.target.value.trim();renderMap();};
+  $("#b-open").onclick  = ()=>document.querySelectorAll(".site").forEach(n=>n.classList.add("open"));
+  $("#b-close").onclick = ()=>document.querySelectorAll(".site").forEach(n=>n.classList.remove("open"));
+
+  renderSites(); renderMap(); renderCols(); renderAsk();
+})();
+</script>
+</body>
+</html>
