@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>SharePoint 移管のご説明 ― 何が変わり、何をお願いしたいか</title>
+<style>
+:root{
+  --navy:#0b3d91; --ink:#1f1f1f; --gray:#605e5c; --line:#edebe9; --bg:#faf9f8;
+  --blue:#0f6cbd; --green:#107c10; --orange:#c55a11; --red:#a4262c; --purple:#7719aa;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Segoe UI","Yu Gothic UI","Hiragino Sans",Meiryo,sans-serif;font-size:14px;line-height:1.75}
+.suite{height:48px;background:var(--navy);color:#fff;display:flex;align-items:center;
+  padding:0 18px;gap:14px;position:sticky;top:0;z-index:40}
+.suite .brand{font-weight:600;font-size:15px}
+.suite .ttl{font-size:13px;color:#cfe0fb}
+.suite .me{margin-left:auto;font-size:12.5px;color:#cfe0fb}
+
+.steps{background:#fff;border-bottom:1px solid var(--line);display:flex;overflow-x:auto;
+  position:sticky;top:48px;z-index:30;padding:0 10px}
+.steps button{background:none;border:0;font:inherit;font-size:13px;color:#484644;cursor:pointer;
+  padding:12px 15px;white-space:nowrap;border-bottom:3px solid transparent;display:flex;gap:8px;align-items:center}
+.steps button:hover{background:#f3f2f1}
+.steps button.on{color:var(--navy);font-weight:700;border-bottom-color:var(--navy)}
+.steps .no{width:20px;height:20px;border-radius:50%;background:#e6e6e6;color:#605e5c;
+  font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.steps button.on .no{background:var(--navy);color:#fff}
+
+main{max-width:1120px;margin:0 auto;padding:26px 22px 80px}
+.pg{display:none}.pg.on{display:block}
+h1{font-size:23px;margin:0 0 6px;letter-spacing:.01em}
+.lead{color:var(--gray);font-size:14px;margin:0 0 22px}
+h2{font-size:15px;margin:28px 0 10px}
+.card{background:#fff;border:1px solid var(--line);border-radius:7px;padding:18px 20px;margin-bottom:14px}
+.card.tight{padding:0;overflow:hidden}
+.note{background:#fffbe9;border-left:4px solid #e8b93a;padding:12px 16px;border-radius:0 5px 5px 0;margin-top:14px;font-size:13px}
+.note.g{background:#eef8ee;border-left-color:var(--green)}
+.note.o{background:#fdf4ec;border-left-color:var(--orange)}
+.note.r{background:#fdecea;border-left-color:var(--red)}
+.note.b{background:#eef3fb;border-left-color:var(--blue)}
+
+.big{font-size:40px;font-weight:700;color:var(--navy);line-height:1.1}
+.big small{font-size:14px;font-weight:600;color:var(--gray);margin-left:5px}
+.grid{display:grid;gap:12px}
+.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:820px){.g2,.g3,.g4{grid-template-columns:1fr}}
+
+/* 積み上げ帯 */
+.bar{display:flex;height:30px;border-radius:5px;overflow:hidden;border:1px solid var(--line);background:#fff}
+.bar div{display:flex;align-items:center;justify-content:center;color:#fff;font-size:11.5px;font-weight:700}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--gray);margin-top:9px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.k-gyomu{background:var(--green)} .k-kyoten{background:var(--blue)}
+.k-pj{background:var(--orange)} .k-kojin{background:var(--red)} .k-nendo{background:var(--purple)}
+
+/* 部署タブ */
+.depts{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.depts button{border:1px solid #cfd8e6;background:#fff;border-radius:16px;padding:6px 14px;
+  font:inherit;font-size:13px;cursor:pointer}
+.depts button:hover{background:#eef3fb}
+.depts button.on{background:var(--navy);color:#fff;border-color:var(--navy);font-weight:700}
+
+/* SharePoint 風の小さい画面 */
+.spo{border:1px solid var(--line);border-radius:6px;overflow:hidden;background:#fff}
+.spo .hd{background:var(--navy);color:#fff;font-size:11.5px;padding:6px 12px}
+.spo .tool{font-size:11.5px;color:var(--gray);padding:6px 12px;border-bottom:1px solid var(--line);display:flex;gap:12px}
+.spo table{width:100%;border-collapse:collapse;font-size:12.5px}
+.spo th{background:#f7f7f7;color:var(--gray);font-size:11px;text-align:left;padding:6px 12px;border-bottom:1px solid var(--line);font-weight:600}
+.spo td{padding:6px 12px;border-bottom:1px solid #f5f4f3}
+.spo tr:last-child td{border-bottom:0}
+.fo::before{content:"📁";margin-right:7px}
+.fi::before{content:"📄";margin-right:7px}
+.chip{font-size:11px;background:#eef3fb;border:1px solid #cfd8e6;color:var(--navy);border-radius:3px;padding:1px 7px;white-space:nowrap}
+.bad{background:#fdecea;border-color:#f3bcc0;color:var(--red)}
+.ok{background:#eef8ee;border-color:#b6ddb6;color:var(--green)}
+
+table.t{width:100%;border-collapse:collapse;font-size:13px}
+table.t th{background:#f3f2f1;color:var(--gray);font-size:11.5px;text-align:left;padding:8px 12px;border-bottom:1px solid var(--line)}
+table.t td{padding:9px 12px;border-bottom:1px solid #f5f4f3;vertical-align:top}
+table.t tr:last-child td{border-bottom:0}
+.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+
+.arrow{display:flex;align-items:center;justify-content:center;color:#b9b9b9;font-size:20px}
+@media(max-width:820px){.arrow{transform:rotate(90deg);padding:6px 0}}
+.nav{display:flex;gap:10px;margin-top:26px}
+.nav button{border:1px solid #cfd8e6;background:#fff;border-radius:5px;padding:9px 18px;font:inherit;font-size:13px;cursor:pointer}
+.nav button.p{background:var(--navy);color:#fff;border-color:var(--navy);font-weight:700}
+.nav button:disabled{opacity:.4;cursor:default}
+footer{max-width:1120px;margin:0 auto;padding:0 22px 40px;color:#8a8886;font-size:11.5px;line-height:1.8}
+</style>
+</head>
+<body>
+
+<div class="suite">
+  <span class="brand">SharePoint 移管</span>
+  <span class="ttl">各部署のみなさまへ ― 何が変わり、何をお願いしたいか</span>
+  <span class="me">サンプル株式会社</span>
+</div>
+
+<div class="steps" id="steps"></div>
+<main id="main"></main>
+<footer>
+  数字は、ご提供いただいた「要ファイル一覧」全28ブックの集計値です（合計 <span id="ftot"></span> ファイル）。<br>
+  取引先名・担当者名・拠点名は伏せてあります。画面は説明用の試作で、実在のファイルは配置していません。
+</footer>
+
+<script>
+const D = {"kind": [{"k": "拠点", "n": 384417, "what": "拠点名でフォルダを切っている", "todo": "設計では拠点はサイトにせず「列」で表現する方針（判断記録 J-09）。移行時に拠点フォルダを畳み、拠点は列へ移す作業が発生します"}, {"k": "個人", "n": 193301, "what": "個人名フォルダ・デスクトップ・マイドキュメント", "todo": "★ SharePointの移行対象ではありません。OneDrive へ移すか、業務文書だけを抜き出す判断が要ります"}, {"k": "案件・PJ", "n": 164103, "what": "プロジェクト名・システム名・案件名", "todo": "PJサイトで受けるか、完了後に帰属先の中分類へ移すかの判断が要ります"}, {"k": "年度", "n": 506, "what": "年度・期でフォルダを切っている", "todo": "年度は列（FiscalYear）で表現します"}, {"k": "業務", "n": 402230, "what": "業務の内容でフォルダを切っている", "todo": "そのまま中分類へ割り当てられる見込みです"}], "total": 1144557, "dept": [{"d": "情報システム部", "n": 332775, "kyoten": 12173, "kojin": 72711, "pj": 155253, "nendo": 506, "gyomu": 92132, "note": "案件・システム名で切られています。PJサイトの設計が要ります"}, {"d": "管理本部", "n": 251848, "kyoten": 191824, "kojin": 0, "pj": 7080, "nendo": 0, "gyomu": 52944, "note": "ほぼ全量が拠点別。拠点を列へ移す作業が中心になります"}, {"d": "サービス部", "n": 197491, "kyoten": 5061, "kojin": 0, "pj": 0, "nendo": 0, "gyomu": 192430, "note": "業務内容で切られており、中分類へ割り当てやすい状態です"}, {"d": "技術部", "n": 179582, "kyoten": 557, "kojin": 118808, "pj": 0, "nendo": 0, "gyomu": 60217, "note": "個人フォルダが最大。移行対象から外すかの判断が先です"}, {"d": "生産部", "n": 88125, "kyoten": 88125, "kojin": 0, "pj": 0, "nendo": 0, "gyomu": 0, "note": "ほぼ全量が拠点別。拠点を列へ移す作業が中心になります"}, {"d": "業務部", "n": 77350, "kyoten": 72852, "kojin": 0, "pj": 0, "nendo": 0, "gyomu": 4498, "note": "ほぼ全量が拠点別。拠点を列へ移す作業が中心になります"}, {"d": "営業部", "n": 12195, "kyoten": 8643, "kojin": 1782, "pj": 1770, "nendo": 0, "gyomu": 0, "note": "ほぼ全量が拠点別。拠点を列へ移す作業が中心になります"}, {"d": "経理部", "n": 5191, "kyoten": 5182, "kojin": 0, "pj": 0, "nendo": 0, "gyomu": 9, "note": "ほぼ全量が拠点別。拠点を列へ移す作業が中心になります"}], "ronten": [{"no": "1", "t": "個人フォルダの扱い", "n": "193301", "now": "技術部の「★品技個人フォルダ」だけで118,808件。情報システム部にも担当者名のフォルダが複数あります", "ask": "★ SharePointへ移すか、OneDriveへ移すか、移行対象から外すか。移行量の見積りが大きく変わるため、最初に決める必要があります"}, {"no": "2", "t": "拠点フォルダの畳み方", "n": "384417", "now": "生産部・経理部・業務部はほぼ全量が拠点別。設計では拠点を列で表現する方針（J-09）", "ask": "拠点フォルダを畳んで列へ移すことに、各部署の同意が得られるか。「拠点ごとに分かれていないと探せない」という反応が想定されます"}, {"no": "3", "t": "案件・PJフォルダの扱い", "n": "164103", "now": "情報システム部が最多。基幹システムリニューアル等の案件フォルダ", "ask": "PJサイトで受けるか、完了済み案件は帰属先の中分類へ移すか。PJサイトは1:Nが成立しないため、完了時の移管ルールが要ります"}, {"no": "4", "t": "年度フォルダの扱い", "n": "506", "now": "件数は少数。年度は列（FiscalYear）で表現する設計です", "ask": "そのまま列へ移して問題ないか"}, {"no": "5", "t": "業務フォルダの割り当て", "n": "402230", "now": "業務内容で切られており、中分類へ割り当てられる見込み", "ask": "各部署に、自部署のフォルダと中分類の対応をご確認いただきます（チェックリスト）"}], "sites": [{"id": "F01", "name": "F01 経営・組織運営", "libs": "6", "sub": "19"}, {"id": "F02", "name": "F02 営業・顧客管理", "libs": "6", "sub": "21"}, {"id": "F03", "name": "F03 法務管理", "libs": "7", "sub": "26"}, {"id": "F04", "name": "F04 調達・購買管理", "libs": "7", "sub": "19"}, {"id": "F05", "name": "F05 生産・洗濯・仕上げ管理", "libs": "7", "sub": "32"}, {"id": "F06", "name": "F06 品質保証・品質管理", "libs": "5", "sub": "16"}, {"id": "F07", "name": "F07 物流・配送管理", "libs": "7", "sub": "23"}, {"id": "F08", "name": "F08 リネン・資材管理", "libs": "8", "sub": "26"}, {"id": "F09", "name": "F09 人事・労務管理", "libs": "12", "sub": "74"}, {"id": "F10", "name": "F10 財務・会計管理", "libs": "14", "sub": "63"}, {"id": "F11", "name": "F11 情報システム管理", "libs": "9", "sub": "20"}, {"id": "F12", "name": "F12 環境・安全衛生", "libs": "6", "sub": "19"}, {"id": "F13", "name": "F13 総務・施設管理", "libs": "9", "sub": "39"}, {"id": "F14", "name": "F14 研究開発・技術・知財管理", "libs": "9", "sub": "42"}, {"id": "F15", "name": "F15 契約・商取引管理", "libs": "6", "sub": "23"}], "cols": [{"col": "文書種別", "type": "選択肢（単一）", "req": "必須", "use": "「規定」「売買契約」「請求書（受領）」など文書の種類。ライブラリ横断で絞り込める"}, {"col": "担当部署", "type": "選択肢（複数）", "req": "必須", "use": "部署別ビューの生成元。共有フォルダは複数部署を持たせる"}, {"col": "保存期間", "type": "選択肢（単一）", "req": "必須", "use": "10年／5年／改廃後10年／退職後5年 ほか。保持ラベルに連動"}, {"col": "得意先・取引先", "type": "テキスト", "req": "任意", "use": "F15-02 契約管理・見積・受発注・請求で使用"}, {"col": "契約文書区分", "type": "選択肢（単一）", "req": "任意", "use": "F15-02 契約管理。rev10 メタデータ列の指定どおり"}, {"col": "原因区分", "type": "選択肢（単一）", "req": "任意", "use": "F02-05 クレーム対応（社外）。rev10 メタデータ列の指定どおり"}, {"col": "年度", "type": "数値", "req": "任意", "use": "会計期・年度別の絞り込み。フォルダの年度階層を置き換える"}, {"col": "拠点", "type": "選択肢（単一）", "req": "任意", "use": "生産部より拠点別フォルダのご要望（レビュー No.22）。列で持てばフォルダを増やさずに済む"}]};
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const n = v => Number(v).toLocaleString();
+const pct = (a,b) => Math.round(a/b*1000)/10;
+
+let cur = 0, dept = D.dept[0].d;
+
+const STEPS = [
+  ["いまの実態",       p1],
+  ["3階層の考え方",    p2],
+  ["フォルダを掘らない", p3],
+  ["あなたの部署は",    p4],
+  ["権限の考え方",     p5],
+  ["お願いしたいこと",  p6],
+];
+
+const KINDS = [
+  {k:"gyomu",  l:"業務の内容",   c:"k-gyomu"},
+  {k:"kyoten", l:"拠点",        c:"k-kyoten"},
+  {k:"pj",     l:"案件・PJ",     c:"k-pj"},
+  {k:"kojin",  l:"個人",        c:"k-kojin"},
+  {k:"nendo",  l:"年度",        c:"k-nendo"},
+];
+
+function stack(o, total){
+  return `<div class="bar">` + KINDS.map(x=>{
+    const v=o[x.k]||0; if(!v) return "";
+    const w=v/total*100;
+    return `<div class="${x.c}" style="width:${w}%" title="${x.l} ${n(v)}">${w>7?x.l:""}</div>`;
+  }).join("") + `</div>`;
+}
+const legend = `<div class="legend">` + KINDS.map(x=>
+  `<span><i class="${x.c}"></i>${x.l}</span>`).join("") + `</div>`;
+
+/* ---------------------------------------------------------- 1 */
+function p1(){
+  const tot=D.total, gy=D.dept.reduce((a,b)=>a+b.gyomu,0);
+  const agg={}; KINDS.forEach(x=>agg[x.k]=D.dept.reduce((a,b)=>a+(b[x.k]||0),0));
+  return `
+  <h1>いま、フォルダは業務の種類では切られていません</h1>
+  <p class="lead">ご提供いただいたファイル一覧を集計した結果です。ここが今回の移管のいちばんの論点になります。</p>
+
+  <div class="grid g2">
+    <div class="card">
+      <div class="big">${n(tot)}<small>ファイル</small></div>
+      <div style="color:var(--gray);font-size:12.5px">全社の対象ファイル数</div>
+    </div>
+    <div class="card">
+      <div class="big" style="color:var(--green)">${pct(gy,tot)}<small>%</small></div>
+      <div style="color:var(--gray);font-size:12.5px">業務の内容でフォルダが切られているもの（${n(gy)} ファイル）</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">何の軸でフォルダが切られているか</h2>
+    ${stack(agg, tot)}${legend}
+    <table class="t" style="margin-top:14px">
+      <thead><tr><th style="width:110px">軸</th><th style="width:110px" class="num">ファイル数</th>
+        <th style="width:70px" class="num">割合</th><th>どういうフォルダか</th></tr></thead>
+      <tbody>${D.kind.map(k=>`<tr>
+        <td><b>${esc(k.k)}</b></td><td class="num">${n(k.n)}</td>
+        <td class="num">${pct(k.n,tot)}%</td>
+        <td style="color:var(--gray)">${esc(k.what)}</td></tr>`).join("")}</tbody>
+    </table>
+    <div class="note o"><b>業務の種類で切られているのは約3分の1だけです。</b>
+      残りは拠点・個人・案件・年度で切られています。
+      つまり「いまのフォルダ名をそのまま SharePoint に移す」と、文書分類体系との対応がつきません。
+      だからこそ、フォルダをどう畳むかを先に決める必要があります。</div>
+  </div>`;
+}
+
+/* ---------------------------------------------------------- 2 */
+function p2(){
+  return `
+  <h1>大分類はサイト、中分類はライブラリ、小分類は「列」</h1>
+  <p class="lead">共通文書管理体系の3階層を、SharePoint の入れ物にそのまま対応させます。</p>
+
+  <div class="grid g3">
+    ${[["大分類","業務として成り立つか","サイト","15","F01 経営・組織運営／F02 営業・顧客管理 …","var(--navy)"],
+       ["中分類","作業として成り立つか","ドキュメント ライブラリ","118","F02-04 受注管理／F02-05 問い合わせ・クレーム処理 …","var(--blue)"],
+       ["小分類","文書として成り立つか","「文書種別」列","462","注文書／受注書／請求書（受領）／規定 …","var(--orange)"]]
+      .map(([a,b,c,d,e,col])=>`
+      <div class="card" style="border-top:3px solid ${col}">
+        <div style="font-size:15px;font-weight:700;color:${col}">${a}</div>
+        <div style="font-size:12px;color:var(--gray)">${b}</div>
+        <div style="margin:12px 0 4px;font-size:15px;font-weight:700">↓ ${c}</div>
+        <div class="big" style="font-size:30px;color:${col}">${d}</div>
+        <div style="font-size:12px;color:var(--gray);margin-top:6px">${e}</div>
+      </div>`).join("")}
+  </div>
+
+  <div class="note b"><b>フォルダは「置き場所」、列は「その文書が何か」。</b>
+    小分類は「注文書」「請求書」のように文書の種類そのものなので、置き場所ではなく列で持ちます。
+    列にしておくと、複数のライブラリをまたいで「注文書だけ」を一覧できます。</div>
+
+  <div class="card tight" style="margin-top:16px">
+    <div class="spo">
+      <div class="hd">サンプル株式会社 ポータル ＞ F02 営業・顧客管理 ＞ F02-04 受注管理</div>
+      <div class="tool"><span>＋ 新規</span><span>↑ アップロード</span><span>⊞ ビューの編集</span></div>
+      <table>
+        <thead><tr><th style="width:42%">名前</th><th>文書種別</th><th>担当部署</th><th>保存期間</th></tr></thead>
+        <tbody>
+          <tr><td class="fi">注文書_2026年度.pdf</td><td><span class="chip">注文書</span></td><td>営業部</td><td>10年</td></tr>
+          <tr><td class="fi">受注書_2026年度.xlsx</td><td><span class="chip">受注書</span></td><td>営業部</td><td>10年</td></tr>
+          <tr><td class="fi">受注データ_2026年度.xlsx</td><td><span class="chip">受注データ</span></td><td>営業部</td><td>10年</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div style="font-size:12px;color:var(--gray);margin-top:7px">
+    ライブラリを開くと、こう見えます。「文書種別」が列になっているのがポイントです。</div>`;
+}
+
+/* ---------------------------------------------------------- 3 */
+function p3(){
+  return `
+  <h1>フォルダを掘らず、列で絞ります</h1>
+  <p class="lead">拠点・年度・取引先は、フォルダではなく列で持ちます。深い階層を作らないための決めごとです。</p>
+
+  <div class="grid g2" style="align-items:stretch">
+    <div>
+      <div style="font-size:13px;font-weight:700;color:var(--red);margin-bottom:8px">いまのやり方（フォルダで分ける）</div>
+      <div class="spo">
+        <div class="hd" style="background:#8a8886">受注管理</div>
+        <table><tbody>
+          <tr><td class="fo">A営業所</td></tr>
+          <tr><td style="padding-left:34px" class="fo">2026年度</td></tr>
+          <tr><td style="padding-left:56px" class="fo">取引先A社</td></tr>
+          <tr><td style="padding-left:78px" class="fi">注文書.pdf</td></tr>
+          <tr><td class="fo">B営業所</td></tr>
+          <tr><td style="padding-left:34px" class="fo">2026年度</td></tr>
+          <tr><td style="padding-left:56px" class="fo">取引先B社</td></tr>
+          <tr><td style="padding-left:78px" class="fi">注文書.pdf</td></tr>
+        </tbody></table>
+      </div>
+      <div class="note r" style="margin-top:10px">
+        拠点×年度×取引先の数だけフォルダが増えます。<b>同じ「注文書」が何十か所にも散ります。</b>
+        権限もフォルダごとに付けたくなり、あとで誰が見られるのか分からなくなります。</div>
+    </div>
+
+    <div>
+      <div style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:8px">これから（列で分ける）</div>
+      <div class="spo">
+        <div class="hd">受注管理</div>
+        <div class="tool"><span>⊞ 拠点：A営業所 ▾</span><span>年度：2026 ▾</span></div>
+        <table>
+          <thead><tr><th>名前</th><th>文書種別</th><th>拠点</th><th>年度</th></tr></thead>
+          <tbody>
+            <tr><td class="fi">注文書_取引先A社.pdf</td><td><span class="chip">注文書</span></td><td>A営業所</td><td>2026</td></tr>
+            <tr><td class="fi">注文書_取引先B社.pdf</td><td><span class="chip">注文書</span></td><td>B営業所</td><td>2026</td></tr>
+            <tr><td class="fi">受注書_取引先A社.xlsx</td><td><span class="chip">受注書</span></td><td>A営業所</td><td>2026</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note g" style="margin-top:10px">
+        フォルダは増えません。<b>見たい切り口で絞るだけ</b>です。自分の拠点だけ、今年度だけ、注文書だけ ―
+        どの組み合わせでも1画面で出せます。ビューとして保存しておけば、次からは1クリックです。</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <h2 style="margin-top:0">全ライブラリに付く列</h2>
+    <table class="t">
+      <thead><tr><th style="width:140px">列名</th><th style="width:120px">種類</th><th style="width:60px">必須</th><th>用途</th></tr></thead>
+      <tbody>${D.cols.map(c=>`<tr>
+        <td><b>${esc(c.col)}</b></td><td style="color:var(--gray)">${esc(c.type)}</td>
+        <td>${c.req==="必須"?'<span class="chip bad">必須</span>':'<span class="chip">任意</span>'}</td>
+        <td style="color:var(--gray)">${esc(c.use)}</td></tr>`).join("")}</tbody>
+    </table>
+    <div class="note"><b>移管したその日に、列の値は入りません。</b>
+      いまのフォルダ構造のまま移したうえで、フォルダ単位の既定値で一括付与します。
+      手作業で1件ずつ入力していただくことはありません。</div>
+  </div>`;
+}
+
+/* ---------------------------------------------------------- 4 */
+function p4(){
+  const d = D.dept.find(x=>x.d===dept) || D.dept[0];
+  const DEST = [
+    {k:"gyomu",  l:"業務の内容で切られている", to:"そのまま中分類（ライブラリ）へ",
+     c:"var(--green)", how:"フォルダ名と中分類の対応を確認いただければ、そのまま移せます"},
+    {k:"kyoten", l:"拠点で切られている", to:"フォルダを畳んで「拠点」列へ",
+     c:"var(--blue)", how:"拠点ごとのビューを用意します。探し方は変わりません"},
+    {k:"pj",     l:"案件・PJで切られている", to:"立ち上げプロジェクト サイトへ",
+     c:"var(--orange)", how:"案件ごとにサイトを作り、終了時に業務サイトへ移します"},
+    {k:"kojin",  l:"個人で切られている", to:"OneDrive へ（SharePoint の対象外）",
+     c:"var(--red)", how:"共有が必要なものだけ、業務のライブラリへ抜き出します"},
+    {k:"nendo",  l:"年度で切られている", to:"「年度」列へ",
+     c:"var(--purple)", how:"年度フォルダを畳み、列で絞り込む形にします"},
+  ];
+  return `
+  <h1>あなたの部署のフォルダは、どこへ行くか</h1>
+  <p class="lead">部署を選ぶと、いまのフォルダがどの方向へ振り分けられるかが出ます。</p>
+
+  <div class="depts">${D.dept.map(x=>
+    `<button class="${x.d===dept?"on":""}" data-d="${esc(x.d)}">${esc(x.d)}</button>`).join("")}</div>
+
+  <div class="card">
+    <div style="display:flex;gap:18px;align-items:baseline;flex-wrap:wrap">
+      <div><div class="big">${n(d.n)}<small>ファイル</small></div>
+        <div style="color:var(--gray);font-size:12.5px">${esc(d.d)}の対象ファイル数</div></div>
+      <div style="flex:1;min-width:280px">${stack(d, d.n)}${legend}</div>
+    </div>
+    <div class="note ${d.gyomu/d.n>0.6?"g":"o"}" style="margin-top:14px"><b>所見：</b>${esc(d.note)}</div>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">振り分けの内訳</h2>
+    <table class="t">
+      <thead><tr><th style="width:230px">いまの切り方</th><th style="width:110px" class="num">ファイル数</th>
+        <th style="width:250px">移った先</th><th>どうなるか</th></tr></thead>
+      <tbody>${DEST.filter(x=>d[x.k]>0).map(x=>`<tr>
+        <td><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${x.c};margin-right:7px"></span>${esc(x.l)}</td>
+        <td class="num">${n(d[x.k])}</td>
+        <td><b style="color:${x.c}">${esc(x.to)}</b></td>
+        <td style="color:var(--gray)">${esc(x.how)}</td></tr>`).join("")}</tbody>
+    </table>
+  </div>`;
+}
+
+/* ---------------------------------------------------------- 5 */
+function p5(){
+  return `
+  <h1>権限は、ライブラリ単位で決めます</h1>
+  <p class="lead">フォルダ1つずつに権限を付けると、半年で誰も管理できなくなります。単位をそろえます。</p>
+
+  <div class="grid g3">
+    ${[["サイト","大分類ごと","その大分類に関わる部署が入ります","var(--navy)"],
+       ["ライブラリ","中分類ごと","ここで権限を決めます。主管部署が編集、関係部署が閲覧","var(--blue)"],
+       ["フォルダ","第1階層まで","原則、個別の権限は付けません","#8a8886"]]
+      .map(([a,b,c,col])=>`
+      <div class="card" style="border-top:3px solid ${col}">
+        <div style="font-size:15px;font-weight:700;color:${col}">${a}</div>
+        <div style="font-size:12px;color:var(--gray)">${b}</div>
+        <div style="margin-top:10px;font-size:13px">${c}</div>
+      </div>`).join("")}
+  </div>
+
+  <div class="note r"><b>「この人にだけ見せたい」と思ったときが、いちばん危ないところです。</b>
+    フォルダの権限を切ると、そのフォルダだけ継承から外れます。数が増えるほど、
+    誰が何を見られるのか誰にも分からなくなり、あとから直すのも簡単ではありません。</div>
+
+  <div class="card">
+    <h2 style="margin-top:0">こう言われたら、こうします</h2>
+    <table class="t">
+      <thead><tr><th style="width:250px">現場からよく出る相談</th><th style="width:270px">こうします</th><th>なぜ</th></tr></thead>
+      <tbody>
+        <tr><td>この人にだけ見せたい</td><td><b>共有用のフォルダを1つ作って、そのフォルダごと共有</b></td>
+            <td style="color:var(--gray)">ファイルを1つずつ共有すると、件数ぶん権限が増えます</td></tr>
+        <tr><td>社外の方に渡したい</td><td><b>情報システム部で期限付きリンクを発行</b></td>
+            <td style="color:var(--gray)">自分で作ったリンクは、転送された先を追えなくなります</td></tr>
+        <tr><td>拠点ごとに分けたい</td><td><b>フォルダを掘らず「拠点」列とビューで対応</b></td>
+            <td style="color:var(--gray)">フォルダは権限とセットです。列なら増えても崩れません</td></tr>
+        <tr><td>間違って消してしまった</td><td><b>ごみ箱から自分で戻せます（93日間）</b></td>
+            <td style="color:var(--gray)">情報システム部への連絡は要りません</td></tr>
+      </tbody>
+    </table>
+  </div>`;
+}
+
+/* ---------------------------------------------------------- 6 */
+function p6(){
+  return `
+  <h1>各部署にお願いしたいこと</h1>
+  <p class="lead">設計を確定する前に、決めていただきたい論点です。件数が大きいものから並べています。</p>
+
+  ${D.ronten.map(r=>`
+    <div class="card">
+      <div style="display:flex;gap:11px;align-items:center;flex-wrap:wrap">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--navy);color:#fff;
+             display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px">${esc(r.no)}</div>
+        <b style="font-size:15px;color:var(--navy)">${esc(r.t)}</b>
+        <span class="chip">対象 ${n(r.n)} ファイル</span>
+      </div>
+      <div style="margin-top:9px;font-size:13px;color:var(--gray)"><b style="color:var(--ink)">いまの状況：</b>${esc(r.now)}</div>
+      <div class="note b" style="margin-top:9px"><b>ご判断いただきたいこと：</b>${esc(r.ask)}</div>
+    </div>`).join("")}
+
+  <div class="note g"><b>この場で決めていただく必要はありません。</b>
+    持ち帰って部署内でご相談のうえ、チェックリストにご記入いただく形で結構です。
+    ご不明な点は、その都度うかがいます。</div>`;
+}
+
+/* ---------------------------------------------------------- draw */
+function draw(){
+  $("#steps").innerHTML = STEPS.map((s,i)=>
+    `<button class="${i===cur?"on":""}" data-i="${i}"><span class="no">${i+1}</span>${s[0]}</button>`).join("");
+  $("#main").innerHTML =
+    `<div class="pg on">${STEPS[cur][1]()}
+      <div class="nav">
+        <button ${cur===0?"disabled":""} data-mv="-1">← 前へ</button>
+        <button class="p" ${cur===STEPS.length-1?"disabled":""} data-mv="1">次へ →</button>
+      </div></div>`;
+  $("#ftot").textContent = n(D.total);
+
+  document.querySelectorAll("[data-i]").forEach(e=>e.onclick=()=>{cur=+e.dataset.i;draw();});
+  document.querySelectorAll("[data-mv]").forEach(e=>e.onclick=()=>{
+    cur=Math.min(STEPS.length-1,Math.max(0,cur+ +e.dataset.mv));draw();});
+  document.querySelectorAll("[data-d]").forEach(e=>e.onclick=()=>{dept=e.dataset.d;draw();});
+  window.scrollTo(0,0);
+}
+draw();
+</script>
+</body>
+</html>
