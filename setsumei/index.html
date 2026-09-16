@@ -184,13 +184,13 @@ function p1(){
 /* ---------------------------------------------------------- 2 */
 function p2(){
   return `
-  <h1>大分類はサイト、中分類はライブラリ、小分類は「列」</h1>
+  <h1>大分類はサイト、中分類はライブラリ、小分類はフォルダ</h1>
   <p class="lead">共通文書管理体系の3階層を、SharePoint の入れ物にそのまま対応させます。</p>
 
   <div class="grid g3">
     ${[["大分類","業務として成り立つか","サイト","15","F01 経営・組織運営／F02 営業・顧客管理 …","var(--navy)"],
        ["中分類","作業として成り立つか","ドキュメント ライブラリ","118","F02-04 受注管理／F02-05 問い合わせ・クレーム処理 …","var(--blue)"],
-       ["小分類","文書として成り立つか","「文書種別」列","462","注文書／受注書／請求書（受領）／規定 …","var(--orange)"]]
+       ["小分類","文書として成り立つか","ライブラリ直下のフォルダ","462","受注台帳／単価／料金改定／売上報告書 …","var(--orange)"]]
       .map(([a,b,c,d,e,col])=>`
       <div class="card" style="border-top:3px solid ${col}">
         <div style="font-size:15px;font-weight:700;color:${col}">${a}</div>
@@ -201,33 +201,36 @@ function p2(){
       </div>`).join("")}
   </div>
 
-  <div class="note b"><b>フォルダは「置き場所」、列は「その文書が何か」。</b>
-    小分類は「注文書」「請求書」のように文書の種類そのものなので、置き場所ではなく列で持ちます。
-    列にしておくと、複数のライブラリをまたいで「注文書だけ」を一覧できます。</div>
+  <div class="note b"><b>ライブラリを開いた最初の階層が、小分類のフォルダです。</b>
+    「受注台帳」「売上報告書」のように、文書の種類ごとにフォルダが並びます。
+    保存期間は小分類ごとに決まっているので、<b>フォルダ単位で保持ラベルを付けます。</b>
+    フォルダを作るのはこの1階層だけで、その下に拠点や年度のフォルダは作りません（次のページ）。</div>
 
   <div class="card tight" style="margin-top:16px">
     <div class="spo">
       <div class="hd">サンプル株式会社 ポータル ＞ F02 営業・顧客管理 ＞ F02-04 受注管理</div>
       <div class="tool"><span>＋ 新規</span><span>↑ アップロード</span><span>⊞ ビューの編集</span></div>
       <table>
-        <thead><tr><th style="width:42%">名前</th><th>文書種別</th><th>担当部署</th><th>保存期間</th></tr></thead>
+        <thead><tr><th style="width:42%">名前</th><th>小分類コード</th><th>担当部署</th><th>保存期間</th></tr></thead>
         <tbody>
-          <tr><td class="fi">注文書_2026年度.pdf</td><td><span class="chip">注文書</span></td><td>営業部</td><td>10年</td></tr>
-          <tr><td class="fi">受注書_2026年度.xlsx</td><td><span class="chip">受注書</span></td><td>営業部</td><td>10年</td></tr>
-          <tr><td class="fi">受注データ_2026年度.xlsx</td><td><span class="chip">受注データ</span></td><td>営業部</td><td>10年</td></tr>
+          <tr><td class="fo">受注台帳</td><td><span class="chip">F02-04-01</span></td><td>営業部</td><td>契約終了後10年</td></tr>
+          <tr><td class="fo">単価</td><td><span class="chip">F02-04-02</span></td><td>営業部</td><td>10年</td></tr>
+          <tr><td class="fo">料金改定</td><td><span class="chip">F02-04-03</span></td><td>営業部</td><td>10年</td></tr>
+          <tr><td class="fo">売上報告書</td><td><span class="chip">F02-04-04</span></td><td>営業部</td><td>10年</td></tr>
         </tbody>
       </table>
     </div>
   </div>
   <div style="font-size:12px;color:var(--gray);margin-top:7px">
-    ライブラリを開くと、こう見えます。「文書種別」が列になっているのがポイントです。</div>`;
+    ライブラリを開くと、こう見えます。小分類が最初の階層のフォルダになっているのがポイントです。
+    保存期間はフォルダごとに違ってかまいません（受注台帳だけ「契約終了後10年」）。</div>`;
 }
 
 /* ---------------------------------------------------------- 3 */
 function p3(){
   return `
-  <h1>フォルダを掘らず、列で絞ります</h1>
-  <p class="lead">拠点・年度・取引先は、フォルダではなく列で持ちます。深い階層を作らないための決めごとです。</p>
+  <h1>小分類のフォルダより下は掘らず、列で絞ります</h1>
+  <p class="lead">フォルダは小分類の1階層だけ。拠点・年度・取引先は、その下にフォルダを作らず列で持ちます。</p>
 
   <div class="grid g2" style="align-items:stretch">
     <div>
@@ -251,22 +254,23 @@ function p3(){
     </div>
 
     <div>
-      <div style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:8px">これから（列で分ける）</div>
+      <div style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:8px">これから（小分類フォルダの中は、列で分ける）</div>
       <div class="spo">
-        <div class="hd">受注管理</div>
+        <div class="hd">受注管理 ＞ 受注台帳</div>
         <div class="tool"><span>⊞ 拠点：A営業所 ▾</span><span>年度：2026 ▾</span></div>
         <table>
-          <thead><tr><th>名前</th><th>文書種別</th><th>拠点</th><th>年度</th></tr></thead>
+          <thead><tr><th>名前</th><th>拠点</th><th>年度</th><th>取引先</th></tr></thead>
           <tbody>
-            <tr><td class="fi">注文書_取引先A社.pdf</td><td><span class="chip">注文書</span></td><td>A営業所</td><td>2026</td></tr>
-            <tr><td class="fi">注文書_取引先B社.pdf</td><td><span class="chip">注文書</span></td><td>B営業所</td><td>2026</td></tr>
-            <tr><td class="fi">受注書_取引先A社.xlsx</td><td><span class="chip">受注書</span></td><td>A営業所</td><td>2026</td></tr>
+            <tr><td class="fi">受注台帳_取引先A社.xlsx</td><td>A営業所</td><td>2026</td><td>取引先A社</td></tr>
+            <tr><td class="fi">受注台帳_取引先B社.xlsx</td><td>B営業所</td><td>2026</td><td>取引先B社</td></tr>
+            <tr><td class="fi">受注台帳_取引先C社.xlsx</td><td>A営業所</td><td>2025</td><td>取引先C社</td></tr>
           </tbody>
         </table>
       </div>
       <div class="note g" style="margin-top:10px">
-        フォルダは増えません。<b>見たい切り口で絞るだけ</b>です。自分の拠点だけ、今年度だけ、注文書だけ ―
-        どの組み合わせでも1画面で出せます。ビューとして保存しておけば、次からは1クリックです。</div>
+        「受注台帳」フォルダを開いたら、その下にフォルダはありません。<b>見たい切り口で絞るだけ</b>です。
+        自分の拠点だけ、今年度だけ、この取引先だけ ― どの組み合わせでも1画面で出せます。
+        ビューとして保存しておけば、次からは1クリックです。</div>
     </div>
   </div>
 
@@ -339,7 +343,7 @@ function p5(){
   <div class="grid g3">
     ${[["サイト","大分類ごと","その大分類に関わる部署が入ります","var(--navy)"],
        ["ライブラリ","中分類ごと","ここで権限を決めます。主管部署が編集、関係部署が閲覧","var(--blue)"],
-       ["フォルダ","第1階層まで","原則、個別の権限は付けません","#8a8886"]]
+       ["フォルダ","小分類ごと（第1階層のみ）","原則、個別の権限は付けません。権限はライブラリで決めます","#8a8886"]]
       .map(([a,b,c,col])=>`
       <div class="card" style="border-top:3px solid ${col}">
         <div style="font-size:15px;font-weight:700;color:${col}">${a}</div>
