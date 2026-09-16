@@ -267,7 +267,7 @@ function viewHome(){
     h+=`<div class="dgrid">`+ls.map(l=>`
       <div class="dbtn" data-lib="${l.code}">
         <div class="ic">${esc(l.code)}</div>
-        <div class="tx"><b>${esc(shortName(l))}</b><span>フォルダ ${esc(l.sub)}・${esc(l.keep||"—")}</span></div>
+        <div class="tx"><b>${esc(shortName(l))}</b><span>${esc(l.keep||"—")}</span></div>
       </div>`).join("")+`</div>`;
   }
   h+=`</div></div>`;
@@ -275,11 +275,10 @@ function viewHome(){
     h+=`<div class="card"><h2>ライブラリ一覧</h2>
       <div class="scroll"><table class="tb" style="min-width:760px">
         <thead><tr><th style="width:110px">コード</th><th>ライブラリ名</th>
-          <th style="width:110px">フォルダ</th><th style="width:220px">標準保存期間</th></tr></thead>
+          <th style="width:240px">標準保存期間</th></tr></thead>
         <tbody>${ls.map(l=>`<tr data-lib="${l.code}" style="cursor:pointer">
           <td>${esc(l.code)}</td>
           <td class="fo"><b>${esc(shortName(l))}</b></td>
-          <td>${esc(l.sub)}</td>
           <td style="color:var(--gray)">${esc(l.keep||"—")}</td>
         </tr>`).join("")}</tbody></table></div></div>`;
   }
@@ -293,25 +292,31 @@ function viewLib(){
   let subs=all;
   if(ST.q) subs=subs.filter(x=>(x.name||x.code||"").includes(ST.q));
 
+  // 列は設計書「3_列設計」の8列。フォルダ行には 文書種別（＝小分類名）・担当部署・保存期間 が入る
+  const val = (x,c)=>{
+    if(c.col==="文書種別") return x.name ? `<span class="col-chip">${esc(x.name)}</span>` : '<span style="color:var(--gray)">—</span>';
+    if(c.col==="担当部署") return (x.depts&&x.depts.length) ? esc(x.depts.join("・")) : "—";
+    if(c.col==="保存期間") return esc(x.keep||"—");
+    return '<span style="color:#c8c6c4">—</span>';
+  };
   const rows = subs.map((x,i)=>`<tr>
       <td class="fo"><b>${x.name?esc(x.name):'<span style="color:var(--gray)">（名称未記入）</span>'}</b></td>
-      <td><span class="col-chip">${esc(x.code)}</span></td>
-      <td>${(x.depts&&x.depts.length)?esc(x.depts.join("・")):"—"}</td>
-      <td>${esc(x.keep||"—")}</td>
+      ${D.cols.map(c=>`<td>${val(x,c)}</td>`).join("")}
       <td style="color:var(--gray)">${esc(DATES[i%DATES.length])}</td></tr>`).join("")
-    || `<tr><td colspan="5" style="padding:30px;text-align:center;color:#a19f9d">該当するものがありません。</td></tr>`;
+    || `<tr><td colspan="${D.cols.length+2}" style="padding:30px;text-align:center;color:#a19f9d">該当するものがありません。</td></tr>`;
 
   return `<div class="card">
     <h2><span class="badge b-b">${esc(l.code)}</span> ${esc(shortName(l))}
-      <span style="margin-left:auto;font-weight:400;color:var(--gray);font-size:12px">フォルダ ${all.length}${l.keep?"・標準保存期間 "+esc(l.keep):""}</span></h2>
+      <span style="margin-left:auto;font-weight:400;color:var(--gray);font-size:12px">${l.keep?"標準保存期間 "+esc(l.keep):""}</span></h2>
     <div class="tool">
       <span class="nw">＋ 新規</span><span>↑ アップロード</span><span>⇅ 並べ替え</span><span>⊞ ビューの編集</span>
       <div class="tg" style="margin-left:auto"><div class="on">すべてのドキュメント</div></div>
       <input class="search-box" id="q" placeholder="フォルダ名で絞り込む" value="${esc(ST.q)}">
     </div>
-    <div class="scroll"><table class="tb" style="min-width:900px">
-      <thead><tr><th style="width:36%">名前</th><th style="width:140px">小分類コード</th>
-        <th style="width:170px">担当部署</th><th style="width:220px">保存期間</th><th>更新日時</th></tr></thead>
+    <div class="scroll"><table class="tb" style="min-width:1380px">
+      <thead><tr><th style="width:230px">名前</th>
+        ${D.cols.map(c=>`<th>${esc(c.col)}</th>`).join("")}
+        <th style="width:100px">更新日時</th></tr></thead>
       <tbody>${rows}</tbody></table></div>
   </div>`;
 }
