@@ -293,12 +293,12 @@ function viewHome(){
     h+=`<div class="card"><h2>このサイトのライブラリ一覧</h2>
       <div class="scroll"><table class="tb" style="min-width:880px">
         <thead><tr><th style="width:110px">コード</th><th>ライブラリ名</th>
-          <th style="width:100px">現行から</th><th style="width:100px">フォルダ</th><th>標準保存期間</th></tr></thead>
+          <th style="width:130px">小分類フォルダ</th><th style="width:150px">現行から移ってくる</th><th>標準保存期間</th></tr></thead>
         <tbody>${ls.map(l=>`<tr data-lib="${l.code}" style="cursor:pointer">
           <td>${esc(l.code)}</td>
           <td class="fo"><b>${esc(shortName(l))}</b></td>
-          <td>${(D.fold[l.code]||[]).length} 件</td>
           <td>${esc(l.sub)} 個</td>
+          <td style="color:var(--gray)">${(D.fold[l.code]||[]).length} 件</td>
           <td style="color:var(--gray)">${esc(l.keep||"—")}</td>
         </tr>`).join("")}</tbody></table></div></div>`;
   }
