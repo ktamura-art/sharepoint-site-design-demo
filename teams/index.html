@@ -159,7 +159,7 @@ tr.rowc:hover td{background:#faf9f8}
 .rule{width:100%;font-size:12.5px}
 .rule th{font-size:11px}
 .rule td{padding:7px 8px}
-.rule .ok{color:var(--ok);font-weight:700}.rule .ng{color:var(--bs);font-weight:700}
+.rule .od{color:var(--od);font-weight:700}.rule .ts{color:var(--ts);font-weight:700}.rule .bs{color:var(--bs);font-weight:700}
 .hint{font-size:12px;color:var(--tp-d);background:var(--tp-l);border-radius:6px;padding:8px 12px}
 footer{max-width:1500px;margin:0 auto;padding:0 22px 30px;font-size:11.5px;color:#8a8886;line-height:1.8}
 </style>
@@ -462,14 +462,14 @@ function drawExp(){
       <div class="src"><q>anonymous users are users whose identities aren't verified. These users can include: Users who aren't signed in to Teams with a work or school account.</q><q>anonymous participants: Don't have access to meeting chat before and after the meeting</q></div></div>
       <div class="q"><b>正本の扱いは変わりません</b>ゲストが触れるのは「取引先A社 連携」チームのサイトだけ。確定した資料は③④の流れで業務サイトへ戻します。ゲストを招待できる人は「ゲスト招待者」ロールで絞れます（既定は全員が招待可）。</div>`;
   } else {
-    h = `<div class="card"><h2>⑤ 運用ルール（1枚）</h2>
-      <table class="rule"><thead><tr><th>やりたいこと</th><th>どこで</th><th>正本になるか</th></tr></thead><tbody>
-        <tr><td>会社として残す文書を置く</td><td>業務サイトのタブ（③）から直接</td><td class="ok">なる</td></tr>
-        <tr><td>チームで揉んでいる途中の資料</td><td>チャネルの「ファイル」</td><td class="ng">ならない（チームのサイト）</td></tr>
-        <tr><td>揉み終わって確定した資料</td><td>「確定済み → 正本へ」チャネルに置く → フローが移す（④）</td><td class="ok">なる</td></tr>
-        <tr><td>個人メモ・下書き</td><td>OneDrive</td><td class="ng">ならない</td></tr>
-        <tr><td>チャットで添付を送る</td><td>送信者の OneDrive に入る</td><td class="ng">ならない。正本は送らない</td></tr>
-        <tr><td>外部の会社と資料をやり取り</td><td>取引先ごとのチームにゲスト招待（会議だけなら匿名参加）</td><td class="ng">ならない。確定分は業務サイトへ戻す</td></tr>
+    h = `<div class="card"><h2>⑤ 運用ルール</h2>
+      <table class="rule"><thead><tr><th>やりたいこと</th><th>どこで</th><th>ファイルの格納先</th></tr></thead><tbody>
+        <tr><td>会社として残す文書を置く</td><td>業務サイトのタブ（③）から直接</td><td class="bs">業務の SharePoint サイト（F01〜F15）</td></tr>
+        <tr><td>チームで揉んでいる途中の資料</td><td>チャネルの「ファイル」</td><td class="ts">チームの SharePoint サイト</td></tr>
+        <tr><td>揉み終わって確定した資料</td><td>「確定済み → 正本へ」チャネルに置く → フローが移す（④）</td><td class="bs">業務の SharePoint サイト（フローが移動）</td></tr>
+        <tr><td>個人メモ・下書き</td><td>OneDrive</td><td class="od">自分の OneDrive</td></tr>
+        <tr><td>チャットで添付を送る</td><td>チャット（正本は送らない）</td><td class="od">送信者の OneDrive</td></tr>
+        <tr><td>外部の会社と資料をやり取り</td><td>取引先ごとのチームにゲスト招待（会議だけなら匿名参加）</td><td class="ts">取引先チームの SharePoint サイト（確定分は業務サイトへ）</td></tr>
       </tbody></table></div>
       <div class="q"><b>ひとことで</b>「見せたいだけならタブ、残したいなら業務サイト、揉むならチャネル、チャットに正本は送らない」</div>`;
     $("#mb").innerHTML = `<div style="max-width:640px;margin:8px auto">
