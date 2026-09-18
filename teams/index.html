@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Teams と SharePoint の関係 ― ファイルはどこに保存されるか</title>
+<style>
+:root{
+  --tp:#5b5fc7; --tp-d:#444791; --tp-l:#e8ebfa; --rail:#1f1f1f; --side:#f5f5f5; --line:#e1dfdd; --line2:#edebe9;
+  --ink:#242424; --gray:#616161; --white:#fff; --bg:#f0f0f0;
+  --od:#0f6cbd; --ts:#038387; --bs:#c4314b; --ok:#107c10;
+  font-family:"Segoe UI",-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI",Meiryo,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:inherit;font-size:14px;line-height:1.6}
+
+/* ------------------------------------------------ 上部：説明のステップ */
+.top{background:#fff;border-bottom:1px solid var(--line);padding:14px 22px 0}
+.top h1{font-size:17px;margin:0 0 2px}
+.top .lead{font-size:12.5px;color:var(--gray);margin:0 0 10px}
+.steps{display:flex;gap:4px;flex-wrap:wrap}
+.steps button{
+  border:0;background:none;font:inherit;font-size:13px;font-weight:600;color:var(--gray);padding:9px 14px;cursor:pointer;
+  border-bottom:3px solid transparent;display:flex;align-items:center;gap:8px;
+}
+.steps button .no{width:20px;height:20px;border-radius:50%;background:#e1dfdd;color:#424242;font-size:11.5px;display:inline-flex;align-items:center;justify-content:center}
+.steps button.on{color:var(--tp-d);border-bottom-color:var(--tp)}
+.steps button.on .no{background:var(--tp);color:#fff}
+
+/* ------------------------------------------------ 本体：Teams 画面 + 解説 */
+.wrap{display:grid;grid-template-columns:1fr 360px;gap:16px;max-width:1500px;margin:16px auto;padding:0 22px 40px}
+@media(max-width:1100px){.wrap{grid-template-columns:1fr}}
+.teams{background:#fff;border:1px solid var(--line);border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08);display:grid;grid-template-columns:68px 260px 1fr;min-height:640px}
+
+/* アプリ バー */
+.rail{background:var(--rail);color:#adadad;padding:12px 0;display:flex;flex-direction:column;align-items:center;gap:4px}
+.rail div{width:56px;padding:8px 0 6px;border-radius:6px;text-align:center;font-size:10px;line-height:1.2}
+.rail div i{display:block;width:22px;height:22px;margin:0 auto 4px;border-radius:5px;background:#3b3b3b}
+.rail div.on{color:#fff;background:#2b2b2b}
+.rail div.on i{background:var(--tp)}
+
+/* チーム／チャット一覧 */
+.side{background:var(--side);border-right:1px solid var(--line);padding:12px 0;overflow:auto}
+.side .hd{padding:6px 16px 8px;font-size:15px;font-weight:700}
+.side .sec{padding:10px 16px 4px;font-size:11px;color:var(--gray);font-weight:700;letter-spacing:.04em}
+.team{padding:8px 16px;display:flex;gap:10px;align-items:center;font-weight:600;cursor:default}
+.team .av{width:32px;height:32px;border-radius:6px;background:var(--tp);color:#fff;font-size:13px;display:flex;align-items:center;justify-content:center}
+.ch{padding:6px 16px 6px 58px;color:#424242;cursor:pointer;position:relative}
+.ch:hover{background:#ebebeb}
+.ch.on{background:#fff;font-weight:700;color:var(--ink)}
+.ch.on::before{content:"";position:absolute;left:0;top:6px;bottom:6px;width:3px;background:var(--tp);border-radius:0 2px 2px 0}
+.chat{padding:8px 16px;display:flex;gap:10px;align-items:center;cursor:pointer}
+.chat:hover{background:#ebebeb}
+.chat.on{background:#fff}
+.chat .av{width:32px;height:32px;border-radius:50%;background:#c7c7c7;color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;font-weight:700}
+.chat .t{font-size:13px;font-weight:600}
+.chat .s{font-size:11.5px;color:var(--gray);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:170px}
+
+/* メイン */
+.main{display:flex;flex-direction:column;min-width:0}
+.mh{padding:10px 20px 0;border-bottom:1px solid var(--line)}
+.mh .title{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700;margin-bottom:6px}
+.mh .title small{font-size:12px;color:var(--gray);font-weight:400}
+.tabs{display:flex;gap:2px;align-items:flex-end}
+.tabs div{padding:7px 12px;font-size:13px;color:var(--gray);cursor:pointer;border-bottom:3px solid transparent}
+.tabs div.on{color:var(--ink);font-weight:700;border-bottom-color:var(--tp)}
+.tabs div.add{color:var(--tp);font-weight:700;padding:7px 10px}
+.tabs div.hl{outline:2px dashed var(--tp);outline-offset:-2px;border-radius:4px 4px 0 0;background:var(--tp-l)}
+.mb{flex:1;padding:16px 20px;overflow:auto;background:#fff}
+
+/* 投稿 */
+.post{display:flex;gap:12px;margin-bottom:18px}
+.post .av{flex:none;width:34px;height:34px;border-radius:50%;background:#8e8cd8;color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:13px}
+.post .bd{flex:1;min-width:0}
+.post .nm{font-size:13px;font-weight:700}
+.post .nm span{font-weight:400;color:var(--gray);font-size:11.5px;margin-left:8px}
+.post .tx{font-size:13.5px;margin-top:2px}
+.att{display:inline-flex;align-items:center;gap:9px;border:1px solid var(--line);border-radius:6px;padding:8px 12px;margin-top:8px;background:#fafafa;cursor:pointer;max-width:100%}
+.att:hover{background:#f3f2f1}
+.att.sel{outline:2px solid var(--tp);background:var(--tp-l)}
+.att .ic{width:22px;height:26px;border-radius:3px;background:#217346;color:#fff;font-size:9px;display:flex;align-items:center;justify-content:center;font-weight:700}
+.att .ic.w{background:#2b579a}.att .ic.p{background:#d24726}.att .ic.pdf{background:#b30b00}
+.att .n{font-size:13px;font-weight:600}
+.att .w2{font-size:11px;color:var(--gray)}
+.compose{border:1px solid var(--line);border-radius:6px;padding:10px 12px;color:var(--gray);font-size:13px;margin-top:8px}
+
+/* ファイル一覧（SharePoint と同じ表） */
+.ftool{display:flex;gap:16px;font-size:13px;color:var(--tp-d);font-weight:600;padding:2px 0 12px;border-bottom:1px solid var(--line2);margin-bottom:6px}
+.crumb{font-size:12.5px;color:var(--gray);margin-bottom:10px}
+.crumb b{color:var(--ink)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:11.5px;color:var(--gray);font-weight:600;padding:6px 8px;border-bottom:1px solid var(--line2)}
+td{padding:9px 8px;border-bottom:1px solid #f3f2f1;vertical-align:middle}
+tr.sel td{background:var(--tp-l)}
+tr.rowc{cursor:pointer}
+tr.rowc:hover td{background:#faf9f8}
+.fo::before{content:"";display:inline-block;width:16px;height:13px;background:#e8b84a;border-radius:2px;margin-right:8px;vertical-align:-2px}
+.fi::before{content:"";display:inline-block;width:13px;height:16px;background:#217346;border-radius:2px;margin-right:9px;vertical-align:-3px}
+.fi.w::before{background:#2b579a}.fi.pdf::before{background:#b30b00}.fi.p::before{background:#d24726}
+.pill{display:inline-block;font-size:10.5px;font-weight:700;padding:1px 8px;border-radius:999px;color:#fff;vertical-align:1px;margin-left:8px}
+.pill.od{background:var(--od)}.pill.ts{background:var(--ts)}.pill.bs{background:var(--bs)}
+
+/* タブ追加ダイアログ */
+.dlg{border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 30px rgba(0,0,0,.18);max-width:560px;margin:10px auto;background:#fff;overflow:hidden}
+.dlg .dh{padding:14px 18px;font-weight:700;font-size:15px;border-bottom:1px solid var(--line2);display:flex;align-items:center;gap:10px}
+.dlg .dh .sp{width:26px;height:26px;border-radius:5px;background:#038387;color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;font-weight:700}
+.dlg .db{padding:16px 18px}
+.radio{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--line);border-radius:6px;margin-bottom:8px;cursor:pointer}
+.radio.on{border-color:var(--tp);background:var(--tp-l)}
+.radio i{flex:none;width:16px;height:16px;border-radius:50%;border:2px solid #8a8886;margin-top:3px}
+.radio.on i{border-color:var(--tp);background:radial-gradient(var(--tp) 45%,#fff 50%)}
+.radio b{display:block;font-size:13.5px}
+.radio span{font-size:12px;color:var(--gray)}
+.url{border:1px solid var(--line);border-radius:4px;padding:8px 10px;font-size:12.5px;color:var(--ink);background:#faf9f8;font-family:ui-monospace,Menlo,monospace;margin:6px 0 0;word-break:break-all}
+.chk{font-size:12.5px;color:var(--gray);margin-top:12px}
+.dlg .df{padding:12px 18px;border-top:1px solid var(--line2);display:flex;justify-content:flex-end;gap:8px}
+.btn{border:1px solid var(--line);background:#fff;border-radius:4px;padding:6px 16px;font:inherit;font-size:13px;cursor:pointer}
+.btn.p{background:var(--tp);border-color:var(--tp);color:#fff;font-weight:600}
+
+/* Power Automate の見え方 */
+.flow{max-width:620px;margin:6px auto}
+.step{border:1px solid var(--line);border-radius:6px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.08);display:flex;gap:12px;padding:12px 14px;align-items:flex-start}
+.step .ic{flex:none;width:34px;height:34px;border-radius:6px;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.step .k{font-size:11px;color:var(--gray);font-weight:600}
+.step .t{font-size:14px;font-weight:700}
+.step .d{font-size:12.5px;color:var(--gray);margin-top:3px}
+.step .d code{background:#f3f2f1;padding:1px 6px;border-radius:3px;font-size:12px}
+.arrow{width:2px;height:22px;background:#c8c6c4;margin:0 auto;position:relative}
+.arrow::after{content:"";position:absolute;left:-4px;bottom:-2px;border:5px solid transparent;border-top:7px solid #c8c6c4}
+
+/* ------------------------------------------------ 右：この画面の裏側 */
+.exp{display:flex;flex-direction:column;gap:12px}
+.card{background:#fff;border:1px solid var(--line);border-radius:8px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.card h2{margin:0 0 6px;font-size:14px}
+.card p{margin:0;font-size:12.5px;color:var(--gray)}
+.where{display:grid;gap:8px;margin-top:8px}
+.wbox{border:1px solid var(--line);border-radius:6px;padding:9px 12px;display:flex;gap:10px;align-items:flex-start;opacity:.42;transition:.15s}
+.wbox.on{opacity:1;border-width:2px}
+.wbox .dot{flex:none;width:12px;height:12px;border-radius:50%;margin-top:4px}
+.wbox b{display:block;font-size:13px}
+.wbox span{font-size:11.5px;color:var(--gray)}
+.wbox.od.on{border-color:var(--od)}.wbox.ts.on{border-color:var(--ts)}.wbox.bs.on{border-color:var(--bs)}
+.q{background:#fff8e6;border:1px solid #f2d78a;border-radius:6px;padding:10px 12px;font-size:12.5px;color:#5a4300}
+.q b{display:block;margin-bottom:2px}
+.src{font-size:11px;color:#8a8886;border-top:1px solid var(--line2);padding-top:8px;margin-top:4px;line-height:1.7}
+.src q{display:block;color:#605e5c;font-style:normal;margin-bottom:3px}
+.src q::before{content:"「"}.src q::after{content:"」"}
+.rule{width:100%;font-size:12.5px}
+.rule th{font-size:11px}
+.rule td{padding:7px 8px}
+.rule .ok{color:var(--ok);font-weight:700}.rule .ng{color:var(--bs);font-weight:700}
+.hint{font-size:12px;color:var(--tp-d);background:var(--tp-l);border-radius:6px;padding:8px 12px}
+footer{max-width:1500px;margin:0 auto;padding:0 22px 30px;font-size:11.5px;color:#8a8886;line-height:1.8}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <h1>Teams で共有したファイルは、どこに保存されるか</h1>
+  <p class="lead">Teams の画面そのままの見え方で、裏側の保存先（OneDrive／チームの SharePoint／業務の SharePoint）を確認する説明用のデモです。実在のファイルは置いていません。</p>
+  <div class="steps" id="steps"></div>
+</div>
+
+<div class="wrap">
+  <div class="teams">
+    <div class="rail">
+      <div><i></i>アクティビティ</div>
+      <div id="r-chat"><i></i>チャット</div>
+      <div id="r-teams" class="on"><i></i>Teams</div>
+      <div><i></i>カレンダー</div>
+      <div><i></i>OneDrive</div>
+      <div><i></i>…</div>
+    </div>
+    <div class="side" id="side"></div>
+    <div class="main">
+      <div class="mh" id="mh"></div>
+      <div class="mb" id="mb"></div>
+    </div>
+  </div>
+
+  <div class="exp" id="exp"></div>
+</div>
+
+<footer>
+  画面は Microsoft Teams の構成を模した説明用の試作です。組織名・部署名・ファイル名は架空です。<br>
+  保存先の説明は Microsoft 公式ドキュメント（2026年9月18日確認）に基づきます：
+  <a href="https://learn.microsoft.com/ja-jp/sharepoint/teams-connected-sites" target="_blank" rel="noopener">Teams と SharePoint の統合</a> ／
+  <a href="https://support.microsoft.com/ja-jp/teams/files/file-storage-in-microsoft-teams" target="_blank" rel="noopener">Microsoft Teams でのファイルの保存</a> ／
+  <a href="https://support.microsoft.com/ja-jp/sharepoint/libraries/add-a-sharepoint-page-list-or-document-library-as-a-tab-in-teams" target="_blank" rel="noopener">SharePoint のページ、リスト、ドキュメント ライブラリを Teams のタブとして追加する</a> ／
+  <a href="https://learn.microsoft.com/ja-jp/connectors/sharepointonline/" target="_blank" rel="noopener">SharePoint コネクタ（Power Automate）</a>
+</footer>
+
+<script>
+const STEPS = [
+  ["チャネルに置くと", 1], ["チャットで送ると", 2], ["業務サイトをタブに出す", 3], ["確定したら正本へ流す", 4], ["運用ルール", 5],
+];
+let ST = { step:1, ch:"mitsumori", tab:"files", sel:null, radio:"any", chat:0 };
+const $ = s=>document.querySelector(s);
+const esc = s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* ------------------------------------------------ データ（架空） */
+const TEAM = { name:"営業部", av:"営" };
+const CHANNELS = [
+  { id:"general",   name:"一般" },
+  { id:"mitsumori", name:"見積・受注" },
+  { id:"kakutei",   name:"確定済み → 正本へ" },
+];
+const CH_FILES = {
+  general:   [ {n:"部内連絡_9月.docx",t:"w"}, {n:"拠点別 訪問予定.xlsx",t:""} ],
+  mitsumori: [ {n:"見積ドラフト_取引先A社.xlsx",t:""}, {n:"見積ドラフト_取引先B社_v2.xlsx",t:""}, {n:"提案資料_たたき台.pptx",t:"p"} ],
+  kakutei:   [ {n:"見積書_取引先A社_20260918.pdf",t:"pdf"} ],
+};
+const CH_POSTS = {
+  general:   [ {who:"営業 一郎", av:"営", when:"9/17 9:12", tx:"今月の部内連絡です。拠点別の訪問予定も置きました。", att:[{n:"部内連絡_9月.docx",t:"w"},{n:"拠点別 訪問予定.xlsx",t:""}]} ],
+  mitsumori: [ {who:"営業 花子", av:"花", when:"9/18 10:04", tx:"A社の見積ドラフトです。単価をご確認ください。", att:[{n:"見積ドラフト_取引先A社.xlsx",t:""}]},
+               {who:"営業 一郎", av:"営", when:"9/18 11:30", tx:"B社は v2 に差し替えました。提案資料も一緒に。", att:[{n:"見積ドラフト_取引先B社_v2.xlsx",t:""},{n:"提案資料_たたき台.pptx",t:"p"}]} ],
+  kakutei:   [ {who:"営業 花子", av:"花", when:"9/18 15:20", tx:"A社 見積、確定しました。PDF を置きます。", att:[{n:"見積書_取引先A社_20260918.pdf",t:"pdf"}]} ],
+};
+const CHATS = [
+  { who:"営業 花子", av:"花", last:"見積の最新版これです", posts:[
+      {who:"営業 花子", av:"花", when:"9/18 13:02", tx:"見積の最新版これです。", att:[{n:"見積_A社_最新.xlsx",t:""}]},
+      {who:"あなた", av:"私", when:"9/18 13:05", tx:"ありがとうございます、確認します。", att:[]} ] },
+  { who:"経理 次郎", av:"経", last:"請求書の控えを送ります", posts:[
+      {who:"経理 次郎", av:"経", when:"9/17 17:40", tx:"請求書の控えを送ります。", att:[{n:"請求書控え_0917.pdf",t:"pdf"}]} ] },
+];
+const BIZ = { site:"F02 営業・顧客管理", lib:"F02-04 受注管理", url:"https://contoso.sharepoint.com/sites/F02/F02-04",
+  folders:[ ["F02-04-01 受注台帳","契約終了後10年"], ["F02-04-02 単価","10年"], ["F02-04-03 料金改定","10年"], ["F02-04-04 売上報告書","10年"] ] };
+
+/* ------------------------------------------------ 描画 */
+function drawSteps(){
+  $("#steps").innerHTML = STEPS.map(([t,n])=>`<button class="${ST.step===n?"on":""}" data-s="${n}"><span class="no">${n}</span>${t}</button>`).join("");
+  document.querySelectorAll("#steps button").forEach(b=>b.onclick=()=>{
+    ST.step=+b.dataset.s; ST.sel=null;
+    if(ST.step===2){ ST.ch=null; }
+    else if(ST.step===3){ ST.ch="mitsumori"; ST.tab="add"; }
+    else if(ST.step===4){ ST.ch="kakutei"; ST.tab="files"; }
+    else { ST.ch=ST.ch||"mitsumori"; if(ST.tab==="add") ST.tab="files"; }
+    draw();
+  });
+}
+
+function drawSide(){
+  const chatMode = ST.step===2;
+  $("#r-chat").className = chatMode?"on":""; $("#r-teams").className = chatMode?"":"on";
+  if(chatMode){
+    $("#side").innerHTML = `<div class="hd">チャット</div><div class="sec">最近</div>` + CHATS.map((c,i)=>`
+      <div class="chat ${ST.chat===i?"on":""}" data-chat="${i}"><div class="av">${esc(c.av)}</div>
+        <div><div class="t">${esc(c.who)}</div><div class="s">${esc(c.last)}</div></div></div>`).join("");
+    document.querySelectorAll("[data-chat]").forEach(e=>e.onclick=()=>{ST.chat=+e.dataset.chat;ST.sel=null;draw();});
+    return;
+  }
+  $("#side").innerHTML = `<div class="hd">Teams</div><div class="sec">自分のチーム</div>
+    <div class="team"><div class="av">${TEAM.av}</div>${esc(TEAM.name)}</div>` +
+    CHANNELS.map(c=>`<div class="ch ${ST.ch===c.id?"on":""}" data-ch="${c.id}">${esc(c.name)}</div>`).join("");
+  document.querySelectorAll("[data-ch]").forEach(e=>e.onclick=()=>{ST.ch=e.dataset.ch;ST.sel=null; if(ST.tab==="add")ST.tab="files"; draw();});
+}
+
+function attHtml(a, where){
+  const cls = {"":"","w":"w","p":"p","pdf":"pdf"}[a.t];
+  const on = ST.sel===a.n ? " sel":"";
+  return `<div class="att${on}" data-sel="${esc(a.n)}" data-where="${where}"><div class="ic ${cls}">${a.t==="w"?"W":a.t==="p"?"P":a.t==="pdf"?"PDF":"X"}</div>
+    <div><div class="n">${esc(a.n)}</div><div class="w2">${where==="od"?"OneDrive › Microsoft Teams Chat Files":"SharePoint › "+esc(TEAM.name)+" › "+esc(CHANNELS.find(c=>c.id===ST.ch).name)}</div></div></div>`;
+}
+
+function drawMain(){
+  const mh=$("#mh"), mb=$("#mb");
+  /* ---------- チャット */
+  if(ST.step===2){
+    const c = CHATS[ST.chat];
+    mh.innerHTML = `<div class="title"><div class="av" style="width:28px;height:28px;border-radius:50%;background:#c7c7c7;color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center">${esc(c.av)}</div>${esc(c.who)}</div>
+      <div class="tabs"><div class="on">チャット</div><div>共有</div><div>Loop</div><div class="add">＋</div></div>`;
+    mb.innerHTML = c.posts.map(p=>`<div class="post"><div class="av" style="background:${p.who==="あなた"?"#5b5fc7":"#8e8cd8"}">${esc(p.av)}</div><div class="bd">
+        <div class="nm">${esc(p.who)}<span>${esc(p.when)}</span></div><div class="tx">${esc(p.tx)}</div>${p.att.map(a=>attHtml(a,"od")).join("")}</div></div>`).join("")
+      + `<div class="compose">メッセージを入力</div>`;
+    bindSel(); return;
+  }
+  const ch = CHANNELS.find(c=>c.id===ST.ch);
+  const tabs = [["posts","投稿"],["files","ファイル"]];
+  if(ST.step>=3) tabs.push(["biz", BIZ.lib]);
+  mh.innerHTML = `<div class="title">${esc(TEAM.name)} <small>› ${esc(ch.name)}</small></div>
+    <div class="tabs">${tabs.map(([k,l])=>`<div class="${ST.tab===k?"on":""}${k==="biz"&&ST.step===3?" hl":""}" data-tab="${k}">${esc(l)}</div>`).join("")}
+      <div class="add${ST.step===3&&ST.tab==="add"?" hl":""}" data-tab="add">＋</div></div>`;
+  document.querySelectorAll("[data-tab]").forEach(e=>e.onclick=()=>{ST.tab=e.dataset.tab;ST.sel=null;draw();});
+
+  if(ST.tab==="posts"){
+    mb.innerHTML = CH_POSTS[ST.ch].map(p=>`<div class="post"><div class="av">${esc(p.av)}</div><div class="bd">
+        <div class="nm">${esc(p.who)}<span>${esc(p.when)}</span></div><div class="tx">${esc(p.tx)}</div>${p.att.map(a=>attHtml(a,"ts")).join("")}</div></div>`).join("")
+      + `<div class="compose">新しい投稿を開始</div>`;
+    bindSel(); return;
+  }
+  if(ST.tab==="files"){
+    mb.innerHTML = `<div class="ftool"><span>＋ 新規</span><span>↑ アップロード</span><span>⇅ 同期</span><span>SharePoint で開く</span></div>
+      <div class="crumb"><b>${esc(TEAM.name)}</b> › General › <b>${esc(ch.name)}</b>　<span class="pill ts">チームの SharePoint サイト</span></div>
+      <table><thead><tr><th style="width:52%">名前</th><th>更新日時</th><th>更新者</th></tr></thead><tbody>${
+        CH_FILES[ST.ch].map(f=>`<tr class="rowc ${ST.sel===f.n?"sel":""}" data-sel="${esc(f.n)}" data-where="ts"><td class="fi ${f.t}">${esc(f.n)}</td><td style="color:var(--gray)">9月18日</td><td style="color:var(--gray)">営業 花子</td></tr>`).join("")
+      }</tbody></table>`;
+    bindSel(); return;
+  }
+  if(ST.tab==="biz"){
+    mb.innerHTML = `<div class="ftool"><span>＋ 新規</span><span>↑ アップロード</span><span>⊞ ビューの編集</span><span>SharePoint で開く</span></div>
+      <div class="crumb"><b>${esc(BIZ.site)}</b> › <b>${esc(BIZ.lib)}</b>　<span class="pill bs">業務の SharePoint サイト（正本）</span></div>
+      <table><thead><tr><th style="width:48%">名前</th><th>文書種別</th><th>保存期間</th></tr></thead><tbody>${
+        BIZ.folders.map(([n,k])=>`<tr class="rowc ${ST.sel===n?"sel":""}" data-sel="${esc(n)}" data-where="bs"><td class="fo">${esc(n)}</td><td style="color:var(--gray)">${esc(n.slice(10))}</td><td style="color:var(--gray)">${esc(k)}</td></tr>`).join("")
+      }</tbody></table>
+      <div class="hint" style="margin-top:12px">ここに置いたファイルの実体は業務サイト側にあります。Teams からは「見えている」だけです。権限もサイト側の設定がそのまま効きます。</div>`;
+    bindSel(); return;
+  }
+  if(ST.tab==="add"){
+    mb.innerHTML = `<div class="dlg">
+      <div class="dh"><div class="sp">SP</div>SharePoint</div>
+      <div class="db">
+        <div style="font-size:12.5px;color:var(--gray);margin-bottom:10px">追加するコンテンツを選択します</div>
+        <div class="radio ${ST.radio==="own"?"on":""}" data-radio="own"><i></i><div><b>ドキュメント ライブラリ</b><span>このチームのサイト（${esc(TEAM.name)}）にあるライブラリから選ぶ</span></div></div>
+        <div class="radio ${ST.radio==="any"?"on":""}" data-radio="any"><i></i><div><b>任意の SharePoint サイト</b><span>ページ・リスト・ライブラリの URL を貼り付ける</span>
+          ${ST.radio==="any"?`<div class="url">${esc(BIZ.url)}</div>`:""}</div></div>
+        <div class="chk">☑ このタブについてチャネルに投稿する</div>
+      </div>
+      <div class="df"><button class="btn">戻る</button><button class="btn p" id="b-save">保存</button></div>
+    </div>`;
+    document.querySelectorAll("[data-radio]").forEach(e=>e.onclick=()=>{ST.radio=e.dataset.radio;draw();});
+    $("#b-save").onclick=()=>{ST.tab="biz";draw();};
+    return;
+  }
+}
+function bindSel(){
+  document.querySelectorAll("[data-sel]").forEach(e=>e.onclick=()=>{ST.sel=e.dataset.sel;ST.selWhere=e.dataset.where;draw();});
+}
+
+/* ---------- 第4ステップ：フローの見え方（右パネルではなく本体に出す） */
+function flowHtml(){
+  return `<div class="flow">
+    <div class="step"><div class="ic" style="background:#038387">SP</div><div>
+      <div class="k">トリガー</div><div class="t">ファイルが作成されたとき（プロパティのみ）</div>
+      <div class="d">サイト：<code>${esc(TEAM.name)}（チームのサイト）</code>　フォルダー：<code>/General/確定済み → 正本へ</code></div></div></div>
+    <div class="arrow"></div>
+    <div class="step"><div class="ic" style="background:#8a8886">?</div><div>
+      <div class="k">条件（任意）</div><div class="t">ファイル名に「見積書」を含む</div>
+      <div class="d">含まない場合は何もしない。移し先の判断はフローに任せず、チャネルを分けて決めます。</div></div></div>
+    <div class="arrow"></div>
+    <div class="step"><div class="ic" style="background:#c4314b">SP</div><div>
+      <div class="k">アクション</div><div class="t">ファイルの移動</div>
+      <div class="d">移動先：<code>${esc(BIZ.site)} › ${esc(BIZ.lib)} › F02-04-01 受注台帳</code>　同名ファイル：<code>移動して置換</code></div></div></div>
+    <div class="arrow"></div>
+    <div class="step"><div class="ic" style="background:#5b5fc7">T</div><div>
+      <div class="k">アクション</div><div class="t">チャットまたはチャネルでメッセージを投稿する</div>
+      <div class="d">「見積書_取引先A社_20260918.pdf を 受注台帳 へ移しました」と元のチャネルに返す。</div></div></div>
+  </div>`;
+}
+
+/* ------------------------------------------------ 右パネル */
+const WHERE = {
+  od:{ cls:"od", t:"送った人の OneDrive", s:"Microsoft Teams Chat Files フォルダ。会話の相手にだけ共有" },
+  ts:{ cls:"ts", t:"チームの SharePoint サイト", s:"チーム作成時に自動でできるサイト。チャネルごとにフォルダ" },
+  bs:{ cls:"bs", t:"業務の SharePoint サイト（正本）", s:"設計している F01〜F15 のサイト。Teams に置いただけでは入らない" },
+};
+function whereList(on){
+  return `<div class="where">${Object.keys(WHERE).map(k=>{const w=WHERE[k];
+    return `<div class="wbox ${w.cls} ${on===k?"on":""}"><div class="dot" style="background:var(--${w.cls})"></div><div><b>${esc(w.t)}</b><span>${esc(w.s)}</span></div></div>`;}).join("")}</div>`;
+}
+function drawExp(){
+  const e=$("#exp"); let on=null, h="";
+  if(ST.sel) on=ST.selWhere;
+  if(ST.step===1){
+    on = on || (ST.tab==="files"||ST.tab==="posts" ? "ts" : null);
+    h = `<div class="card"><h2>① チャネルに置くと、チームの SharePoint に入る</h2>
+      <p>投稿の添付も「ファイル」タブのアップロードも、同じ場所に保存されます。設定は要りません。左の投稿の添付、または「ファイル」タブの行をクリックすると、保存先が右で光ります。</p>${whereList(on)}
+      <div class="src"><q>Files you upload to a channel are stored in your team's SharePoint folder.</q><q>The Files tab on each standard channel is connected to a folder in the parent site's default document library.</q></div></div>
+      <div class="q"><b>ただし、入るのは「チームのサイト」です</b>設計している業務サイト（F01〜F15）とは別のサイトです。Teams に置いただけでは正本にはなりません。</div>`;
+  } else if(ST.step===2){
+    on = on || "od";
+    h = `<div class="card"><h2>② チャットで送ると、送った人の OneDrive に入る</h2>
+      <p>1対1・グループチャットの添付は、会社の共有場所ではなく<b>送信者個人の OneDrive</b>に保存されます。その人が退職すると、既定では30日で消えます。</p>${whereList(on)}
+      <div class="src"><q>Files you send in chat are stored in your OneDrive for Business and only shared with the people in that conversation.</q></div></div>
+      <div class="q"><b>だから「正本をチャットで送らない」がルールになります</b>チャットの添付を自動で SharePoint へ写すフローは作れますが、接続した本人の OneDrive しか見られないため、人数ぶんのフローが要ります。運用ルールで止めるほうが確実です。</div>`;
+  } else if(ST.step===3){
+    on = on || (ST.tab==="biz" ? "bs" : null);
+    h = `<div class="card"><h2>③ 業務サイトのライブラリを、Teams のタブに出す</h2>
+      <p>「＋」→ SharePoint →「任意の SharePoint サイト」に業務サイトのライブラリの URL を貼ると、Teams の中に正本のライブラリが出ます。<b>ファイルの実体は業務サイトのまま</b>です。</p>${whereList(on)}
+      <div class="src"><q>Select the Any SharePoint site radio button and then paste the URL of the page, news post, or list that you want to add as a tab.</q><q>If users on the team don't have permission to the tabbed page, they'll be shown a page to request access.</q><q>You must be the site owner of the SharePoint site to add site content as a tab in Teams.</q></div></div>
+      <div class="q"><b>権限は業務サイト側のものが効きます</b>タブを出しても、閲覧できる範囲は変わりません。タブの追加はそのサイトの所有者（現場責任者）が行います。</div>`;
+  } else if(ST.step===4){
+    h = `<div class="card"><h2>④ 確定したら正本へ流す（Power Automate）</h2>
+      <p>「確定済み → 正本へ」チャネルにファイルが置かれたら、業務サイトの小分類フォルダへ移すフローです。標準コネクタだけで組めるため、追加ライセンスは要りません。</p>
+      <div class="src"><q>Move file — Moves a file. Works in a similar way to the "Move to" command in SharePoint libraries.</q>（SharePoint コネクタ）</div></div>
+      <div class="q"><b>フローに「どの小分類か」を判断させない</b>移し先はチャネル名で固定します。判断が要るものは、人が業務サイトのタブ（③）から直接置くほうが確実です。研修 第5回の演習題材にそのまま使えます。</div>`;
+    $("#mb").innerHTML = flowHtml();
+  } else {
+    h = `<div class="card"><h2>⑤ 運用ルール（1枚）</h2>
+      <table class="rule"><thead><tr><th>やりたいこと</th><th>どこで</th><th>正本になるか</th></tr></thead><tbody>
+        <tr><td>会社として残す文書を置く</td><td>業務サイトのタブ（③）から直接</td><td class="ok">なる</td></tr>
+        <tr><td>チームで揉んでいる途中の資料</td><td>チャネルの「ファイル」</td><td class="ng">ならない（チームのサイト）</td></tr>
+        <tr><td>揉み終わって確定した資料</td><td>「確定済み → 正本へ」チャネルに置く → フローが移す（④）</td><td class="ok">なる</td></tr>
+        <tr><td>個人メモ・下書き</td><td>OneDrive</td><td class="ng">ならない</td></tr>
+        <tr><td>チャットで添付を送る</td><td>送信者の OneDrive に入る</td><td class="ng">ならない。正本は送らない</td></tr>
+      </tbody></table></div>
+      <div class="q"><b>ひとことで</b>「見せたいだけならタブ、残したいなら業務サイト、揉むならチャネル、チャットに正本は送らない」</div>`;
+    $("#mb").innerHTML = `<div style="max-width:640px;margin:8px auto">
+      <div class="card" style="border-left:4px solid var(--od)"><h2 style="color:var(--od)">OneDrive</h2><p>個人の作業中・下書き。チャットの添付もここ。本人が退職すると既定30日で削除。</p></div>
+      <div class="card" style="border-left:4px solid var(--ts);margin-top:10px"><h2 style="color:var(--ts)">チームの SharePoint サイト（Teams 専用）</h2><p>チャネルの「ファイル」の実体。チーム内で揉む場所。正本ではない。</p></div>
+      <div class="card" style="border-left:4px solid var(--bs);margin-top:10px"><h2 style="color:var(--bs)">業務の SharePoint サイト（F01〜F15）</h2><p>正本。大分類＝サイト／中分類＝ライブラリ／小分類＝フォルダ。Teams からはタブで見る。</p></div>
+    </div>`;
+  }
+  e.innerHTML = h;
+}
+
+function draw(){ drawSteps(); drawSide(); drawMain(); drawExp(); }
+draw();
+</script>
+</body>
+</html>
