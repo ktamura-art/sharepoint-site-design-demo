@@ -100,6 +100,16 @@ tr.rowc:hover td{background:#faf9f8}
 .fi.w::before{background:#2b579a}.fi.pdf::before{background:#b30b00}.fi.p::before{background:#d24726}
 .pill{display:inline-block;font-size:10.5px;font-weight:700;padding:1px 8px;border-radius:999px;color:#fff;vertical-align:1px;margin-left:8px}
 .pill.od{background:var(--od)}.pill.ts{background:var(--ts)}.pill.bs{background:var(--bs)}
+.gtag{font-size:10.5px;color:var(--gray);font-weight:400;margin-left:4px}
+.gicon{display:inline-block;width:14px;height:14px;border-radius:50%;background:#e1dfdd;color:#424242;font-size:9px;text-align:center;line-height:14px;font-weight:700;margin-left:6px;vertical-align:1px}
+.meet{border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-top:8px;display:flex;gap:12px;align-items:flex-start;background:#fafafa}
+.meet .ci{flex:none;width:40px;height:40px;border-radius:6px;background:var(--tp);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:10px;line-height:1.1}
+.meet .ci b{font-size:15px}
+.lobby{border:1px solid var(--line);border-radius:6px;padding:8px 12px;margin-top:8px;font-size:12.5px;background:#fff}
+.lobby .p{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--line2)}
+.lobby .p:last-child{border-bottom:0}
+.lobby .p .st{font-size:10.5px;color:var(--gray);border:1px solid var(--line);border-radius:999px;padding:0 7px;margin-left:6px}
+.lobby .p .ok{font-size:12px;color:var(--tp-d);font-weight:600}
 
 /* タブ追加ダイアログ */
 .dlg{border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 30px rgba(0,0,0,.18);max-width:560px;margin:10px auto;background:#fff;overflow:hidden}
@@ -188,12 +198,14 @@ footer{max-width:1500px;margin:0 auto;padding:0 22px 30px;font-size:11.5px;color
   <a href="https://learn.microsoft.com/ja-jp/sharepoint/teams-connected-sites" target="_blank" rel="noopener">Teams と SharePoint の統合</a> ／
   <a href="https://support.microsoft.com/ja-jp/teams/files/file-storage-in-microsoft-teams" target="_blank" rel="noopener">Microsoft Teams でのファイルの保存</a> ／
   <a href="https://support.microsoft.com/ja-jp/sharepoint/libraries/add-a-sharepoint-page-list-or-document-library-as-a-tab-in-teams" target="_blank" rel="noopener">SharePoint のページ、リスト、ドキュメント ライブラリを Teams のタブとして追加する</a> ／
-  <a href="https://learn.microsoft.com/ja-jp/connectors/sharepointonline/" target="_blank" rel="noopener">SharePoint コネクタ（Power Automate）</a>
+  <a href="https://learn.microsoft.com/ja-jp/connectors/sharepointonline/" target="_blank" rel="noopener">SharePoint コネクタ（Power Automate）</a> ／
+  <a href="https://learn.microsoft.com/ja-jp/microsoftteams/guest-access" target="_blank" rel="noopener">Teams のゲスト アクセス</a> ／
+  <a href="https://learn.microsoft.com/ja-jp/microsoftteams/anonymous-users-in-meetings" target="_blank" rel="noopener">匿名ユーザーの会議参加</a>
 </footer>
 
 <script>
 const STEPS = [
-  ["チャネルに置くと", 1], ["チャットで送ると", 2], ["業務サイトをタブに出す", 3], ["確定したら正本へ流す", 4], ["運用ルール", 5],
+  ["チャネルに置くと", 1], ["チャットで送ると", 2], ["業務サイトをタブに出す", 3], ["確定したら正本へ流す", 4], ["外部の会社と連携する", 6], ["運用ルール", 5],
 ];
 let ST = { step:1, ch:"mitsumori", tab:"files", sel:null, radio:"any", chat:0 };
 const $ = s=>document.querySelector(s);
@@ -224,6 +236,13 @@ const CHATS = [
   { who:"経理 次郎", av:"経", last:"請求書の控えを送ります", posts:[
       {who:"経理 次郎", av:"経", when:"9/17 17:40", tx:"請求書の控えを送ります。", att:[{n:"請求書控え_0917.pdf",t:"pdf"}]} ] },
 ];
+const GTEAM = { name:"取引先A社 連携", av:"A", members:[
+  {n:"営業 花子", g:false}, {n:"営業 一郎", g:false}, {n:"高橋（取引先A社）", g:true}, {n:"佐藤（取引先A社）", g:true} ] };
+const G_POSTS = [
+  {who:"営業 花子", av:"花", when:"9/18 9:30", tx:"高橋さん、佐藤さん、ようこそ。仕様書のドラフトを置きました。コメントをお願いします。", att:[{n:"仕様書ドラフト_v1.docx",t:"w"}], g:false},
+  {who:"高橋（取引先A社）", av:"高", when:"9/18 14:12", tx:"確認しました。2点コメントを入れています。弊社側の見積も添付します。", att:[{n:"御見積書_A社_0918.pdf",t:"pdf"}], g:true},
+];
+const G_FILES = [ {n:"仕様書ドラフト_v1.docx",t:"w",by:"営業 花子"}, {n:"御見積書_A社_0918.pdf",t:"pdf",by:"高橋（取引先A社）"} ];
 const BIZ = { site:"F02 営業・顧客管理", lib:"F02-04 受注管理", url:"https://contoso.sharepoint.com/sites/F02/F02-04",
   folders:[ ["F02-04-01 受注台帳","契約終了後10年"], ["F02-04-02 単価","10年"], ["F02-04-03 料金改定","10年"], ["F02-04-04 売上報告書","10年"] ] };
 
@@ -235,7 +254,8 @@ function drawSteps(){
     if(ST.step===2){ ST.ch=null; }
     else if(ST.step===3){ ST.ch="mitsumori"; ST.tab="add"; }
     else if(ST.step===4){ ST.ch="kakutei"; ST.tab="files"; }
-    else { ST.ch=ST.ch||"mitsumori"; if(ST.tab==="add") ST.tab="files"; }
+    else if(ST.step===6){ ST.ch="gteam"; ST.tab="posts"; }
+    else { if(!ST.ch||ST.ch==="gteam") ST.ch="mitsumori"; if(ST.tab==="add"||ST.tab==="meet") ST.tab="files"; }
     draw();
   });
 }
@@ -250,6 +270,15 @@ function drawSide(){
     document.querySelectorAll("[data-chat]").forEach(e=>e.onclick=()=>{ST.chat=+e.dataset.chat;ST.sel=null;draw();});
     return;
   }
+  if(ST.step===6){
+    $("#side").innerHTML = `<div class="hd">Teams</div><div class="sec">自分のチーム</div>
+      <div class="team" style="opacity:.55"><div class="av">${TEAM.av}</div>${esc(TEAM.name)}</div>
+      <div class="team"><div class="av" style="background:#c4314b">${GTEAM.av}</div>${esc(GTEAM.name)}<span class="gicon" title="このチームにはゲストがいます">G</span></div>
+      <div class="ch on" data-ch="gteam">一般</div>
+      <div class="sec" style="padding-top:14px">メンバー（${GTEAM.members.length}）</div>` +
+      GTEAM.members.map(m=>`<div class="ch" style="cursor:default;padding-left:32px">${esc(m.n)}${m.g?'<span class="gtag">（ゲスト）</span>':''}</div>`).join("");
+    return;
+  }
   $("#side").innerHTML = `<div class="hd">Teams</div><div class="sec">自分のチーム</div>
     <div class="team"><div class="av">${TEAM.av}</div>${esc(TEAM.name)}</div>` +
     CHANNELS.map(c=>`<div class="ch ${ST.ch===c.id?"on":""}" data-ch="${c.id}">${esc(c.name)}</div>`).join("");
@@ -260,7 +289,7 @@ function attHtml(a, where){
   const cls = {"":"","w":"w","p":"p","pdf":"pdf"}[a.t];
   const on = ST.sel===a.n ? " sel":"";
   return `<div class="att${on}" data-sel="${esc(a.n)}" data-where="${where}"><div class="ic ${cls}">${a.t==="w"?"W":a.t==="p"?"P":a.t==="pdf"?"PDF":"X"}</div>
-    <div><div class="n">${esc(a.n)}</div><div class="w2">${where==="od"?"OneDrive › Microsoft Teams Chat Files":"SharePoint › "+esc(TEAM.name)+" › "+esc(CHANNELS.find(c=>c.id===ST.ch).name)}</div></div></div>`;
+    <div><div class="n">${esc(a.n)}</div><div class="w2">${where==="od"?"OneDrive › Microsoft Teams Chat Files":"SharePoint › "+esc(TEAM.name)+" › "+esc((CHANNELS.find(c=>c.id===ST.ch)||CHANNELS[1]).name)}</div></div></div>`;
 }
 
 function drawMain(){
@@ -275,7 +304,8 @@ function drawMain(){
       + `<div class="compose">メッセージを入力</div>`;
     bindSel(); return;
   }
-  const ch = CHANNELS.find(c=>c.id===ST.ch);
+  if(ST.step===6){ drawGuest(); return; }
+  const ch = CHANNELS.find(c=>c.id===ST.ch) || CHANNELS[1];
   const tabs = [["posts","投稿"],["files","ファイル"]];
   if(ST.step>=3) tabs.push(["biz", BIZ.lib]);
   mh.innerHTML = `<div class="title">${esc(TEAM.name)} <small>› ${esc(ch.name)}</small></div>
@@ -322,6 +352,41 @@ function drawMain(){
     $("#b-save").onclick=()=>{ST.tab="biz";draw();};
     return;
   }
+}
+function drawGuest(){
+  const mh=$("#mh"), mb=$("#mb");
+  const tabs=[["posts","投稿"],["files","ファイル"],["meet","会議"]];
+  mh.innerHTML = `<div class="title">${esc(GTEAM.name)}<span class="gicon">G</span> <small>› 一般</small></div>
+    <div class="tabs">${tabs.map(([k,l])=>`<div class="${ST.tab===k?"on":""}" data-tab="${k}">${l}</div>`).join("")}<div class="add">＋</div></div>`;
+  document.querySelectorAll("[data-tab]").forEach(e=>e.onclick=()=>{ST.tab=e.dataset.tab;ST.sel=null;draw();});
+  if(ST.tab==="files"){
+    mb.innerHTML = `<div class="ftool"><span>＋ 新規</span><span>↑ アップロード</span><span>SharePoint で開く</span></div>
+      <div class="crumb"><b>${esc(GTEAM.name)}</b> › General　<span class="pill ts">このチームの SharePoint サイト（ゲストも入れる）</span></div>
+      <table><thead><tr><th style="width:52%">名前</th><th>更新日時</th><th>更新者</th></tr></thead><tbody>${
+        G_FILES.map(f=>`<tr class="rowc ${ST.sel===f.n?"sel":""}" data-sel="${esc(f.n)}" data-where="ts"><td class="fi ${f.t}">${esc(f.n)}</td><td style="color:var(--gray)">9月18日</td><td style="color:var(--gray)">${esc(f.by)}</td></tr>`).join("")
+      }</tbody></table>
+      <div class="hint" style="margin-top:12px">ゲストが触れるのは、このチームのサイトだけです。業務サイト（F02 など）には、そのサイトの権限を別に付けない限り入れません。</div>`;
+    bindSel(); return;
+  }
+  if(ST.tab==="meet"){
+    mb.innerHTML = `<div style="max-width:620px">
+      <div class="meet"><div class="ci"><span>9月</span><b>25</b></div><div style="flex:1">
+        <div style="font-weight:700;font-size:14px">仕様確認ミーティング</div>
+        <div style="font-size:12.5px;color:var(--gray)">9/25（木）14:00–15:00　主催：営業 花子</div>
+        <div style="font-size:12.5px;margin-top:4px">参加：高橋（取引先A社）（ゲスト）、佐藤（取引先A社）（ゲスト）、<b>鈴木（取引先B社）</b>＝会議リンクのみ送付</div>
+        <div class="lobby"><div style="font-size:11.5px;color:var(--gray);font-weight:700;margin-bottom:4px">ロビーで待機中</div>
+          <div class="p"><span>鈴木（取引先B社）<span class="st">Unverified</span></span><span class="ok">参加を許可</span></div></div>
+      </div></div>
+      <div class="hint" style="margin-top:12px">B社の鈴木さんはアカウントなし。会議リンクだけで「匿名参加」し、ロビーで主催者が許可します。名前の横に <b>Unverified</b> と表示されます。会議前後のチャットとファイルには入れません。</div>
+    </div>`;
+    return;
+  }
+  mb.innerHTML = G_POSTS.map(p=>`<div class="post"><div class="av" style="background:${p.g?"#c4314b":"#8e8cd8"}">${esc(p.av)}</div><div class="bd">
+      <div class="nm">${esc(p.who)}${p.g?'<span class="gtag">（ゲスト）</span>':''}<span>${esc(p.when)}</span></div><div class="tx">${esc(p.tx)}</div>${
+      p.att.map(a=>`<div class="att${ST.sel===a.n?" sel":""}" data-sel="${esc(a.n)}" data-where="ts"><div class="ic ${a.t}">${a.t==="w"?"W":a.t==="pdf"?"PDF":"X"}</div>
+        <div><div class="n">${esc(a.n)}</div><div class="w2">SharePoint › ${esc(GTEAM.name)} › General</div></div></div>`).join("")}</div></div>`).join("")
+    + `<div class="compose">新しい投稿を開始</div>`;
+  bindSel();
 }
 function bindSel(){
   document.querySelectorAll("[data-sel]").forEach(e=>e.onclick=()=>{ST.sel=e.dataset.sel;ST.selWhere=e.dataset.where;draw();});
@@ -385,6 +450,17 @@ function drawExp(){
       <div class="src"><q>Move file — Moves a file. Works in a similar way to the "Move to" command in SharePoint libraries.</q>（SharePoint コネクタ）</div></div>
       <div class="q"><b>フローに「どの小分類か」を判断させない</b>移し先はチャネル名で固定します。判断が要るものは、人が業務サイトのタブ（③）から直接置くほうが確実です。研修 第5回の演習題材にそのまま使えます。</div>`;
     $("#mb").innerHTML = flowHtml();
+  } else if(ST.step===6){
+    on = on || (ST.tab==="files"||ST.tab==="posts" ? "ts" : null);
+    h = `<div class="card"><h2>⑥ 外部の会社と連携する ― 相手に Teams は要りません</h2>
+      <p>方法は2つ。<b>一緒に作業する</b>なら「ゲスト招待」、<b>会議だけ</b>なら「匿名参加」。どちらも相手に Microsoft 365 も Teams のライセンスも不要です。</p>${whereList(on)}</div>
+      <div class="card"><h2>A. ゲスト招待（チャット・ファイル・会議すべて）</h2>
+      <p>相手はメールアドレスだけ。届いたワンタイムパスコードで入ります。左の「高橋（取引先A社）」がその状態で、名前に（ゲスト）、チームに G マークが付きます。</p>
+      <div class="src"><q>Anyone with a business or consumer email account, such as Outlook, Gmail, or others, can participate as a guest in Teams.</q><q>Other users are sent a one-time pass code to validate their identity</q><q>Guest access can be used with all Microsoft 365 Business Standard, Microsoft 365 Enterprise, and Microsoft 365 Education subscriptions. No extra Microsoft 365 license is necessary.</q><q>After a guest is added to a team, it can take up to 12 hours for them to have access.</q></div></div>
+      <div class="card"><h2>B. 匿名参加（会議だけ）</h2>
+      <p>会議リンクを送るだけ。サインイン不要で、ロビーで主催者が許可します。「会議」タブの鈴木（取引先B社）がこの状態です。</p>
+      <div class="src"><q>anonymous users are users whose identities aren't verified. These users can include: Users who aren't signed in to Teams with a work or school account.</q><q>anonymous participants: Don't have access to meeting chat before and after the meeting</q></div></div>
+      <div class="q"><b>正本の扱いは変わりません</b>ゲストが触れるのは「取引先A社 連携」チームのサイトだけ。確定した資料は③④の流れで業務サイトへ戻します。ゲストを招待できる人は「ゲスト招待者」ロールで絞れます（既定は全員が招待可）。</div>`;
   } else {
     h = `<div class="card"><h2>⑤ 運用ルール（1枚）</h2>
       <table class="rule"><thead><tr><th>やりたいこと</th><th>どこで</th><th>正本になるか</th></tr></thead><tbody>
@@ -393,6 +469,7 @@ function drawExp(){
         <tr><td>揉み終わって確定した資料</td><td>「確定済み → 正本へ」チャネルに置く → フローが移す（④）</td><td class="ok">なる</td></tr>
         <tr><td>個人メモ・下書き</td><td>OneDrive</td><td class="ng">ならない</td></tr>
         <tr><td>チャットで添付を送る</td><td>送信者の OneDrive に入る</td><td class="ng">ならない。正本は送らない</td></tr>
+        <tr><td>外部の会社と資料をやり取り</td><td>取引先ごとのチームにゲスト招待（会議だけなら匿名参加）</td><td class="ng">ならない。確定分は業務サイトへ戻す</td></tr>
       </tbody></table></div>
       <div class="q"><b>ひとことで</b>「見せたいだけならタブ、残したいなら業務サイト、揉むならチャネル、チャットに正本は送らない」</div>`;
     $("#mb").innerHTML = `<div style="max-width:640px;margin:8px auto">
